@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Container } from '../components/ui/Container'
@@ -10,6 +10,33 @@ import { products, getProductsByCategory } from '../data/products'
 import { categories } from '../data/categories'
 import { fadeInUp, staggerContainer } from '../animations/variants'
 
+const slides = [
+  {
+    title: "Fresh Products",
+    subtitle: "Directly from farms to your home",
+    button: "Shop Fresh",
+    image: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    title: "Pure & Processed",
+    subtitle: "Cold-pressed oils and essentials",
+    button: "Explore Oils",
+    image: "https://images.unsplash.com/photo-1471943311424-646960669fbc?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    title: "Dehydrated Essentials",
+    subtitle: "Long-lasting natural nutrition",
+    button: "View Products",
+    image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    title: "Organic Grains",
+    subtitle: "Sustainably grown staples",
+    button: "Shop Grains",
+    image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80"
+  }
+]
+
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeCategory = searchParams.get('category') || null
@@ -17,6 +44,14 @@ const Shop = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isBuyNow, setIsBuyNow] = useState(false)
+  const [current, setCurrent] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % slides.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
 
   const isValidCategory = (slug) =>
     categories.some((cat) => cat.id === slug)
@@ -71,6 +106,58 @@ const Shop = () => {
             from trusted farms across India.
           </p>
         </motion.div>
+
+        {/* Carousel Slider */}
+        <div className="mt-10 max-w-6xl mx-auto px-4">
+          <div className="relative h-[320px] rounded-2xl overflow-hidden shadow-md">
+            <div
+              className="flex h-full transition-transform duration-700 ease-in-out"
+              style={{ transform: `translateX(-${current * 100}%)` }}
+            >
+              {slides.map((slide, index) => (
+                <div key={index} className="min-w-full h-full flex items-center bg-[#f5f5f5]">
+                  {/* LEFT TEXT */}
+                  <div className="w-1/2 px-10">
+                    <h2 className="text-3xl font-semibold text-[#1f4d36] mb-3">
+                      {slide.title}
+                    </h2>
+                    <p className="text-gray-600 mb-5">
+                      {slide.subtitle}
+                    </p>
+                    <button className="bg-[#1f4d36] text-white px-5 py-2 rounded-lg hover:bg-[#173c2b] transition">
+                      {slide.button}
+                    </button>
+                  </div>
+
+                  {/* RIGHT IMAGE */}
+                  <div className="w-1/2 h-full">
+                    <img
+                      src={slide.image}
+                      alt={slide.title}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80";
+                      }}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* DOTS */}
+          <div className="flex justify-center mt-4 gap-2">
+            {slides.map((_, index) => (
+              <div
+                key={index}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  current === index ? "w-6 bg-[#1f4d36]" : "w-2 bg-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
 
         {/* Mobile Filters */}
         <MobileFilters

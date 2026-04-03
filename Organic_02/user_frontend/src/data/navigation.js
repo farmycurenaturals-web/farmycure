@@ -1,7 +1,7 @@
 export const navLinks = [
   { label: 'Home', path: '/' },
   { label: 'Shop', path: '/shop' },
-  { label: 'Partners', path: '/partners' },
+  { label: 'Trade', path: '/partners' },
   { label: 'About', path: '/about' },
   { label: 'Contact', path: '/contact' },
 ]
@@ -10,7 +10,7 @@ export const footerLinks = {
   quickLinks: [
     { label: 'Home', path: '/' },
     { label: 'Shop', path: '/shop' },
-    { label: 'Partners', path: '/partners' },
+    { label: 'Trade', path: '/partners' },
     { label: 'About Us', path: '/about' },
     { label: 'Contact', path: '/contact' },
   ],
