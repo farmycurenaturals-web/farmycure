@@ -157,14 +157,14 @@ const About = () => {
       >
         <div className="absolute inset-0 bg-black/65" />
 
-        <div className="relative z-10 w-full py-28 px-6">
-          <div className="max-w-4xl mx-auto bg-black/40 backdrop-blur-sm p-10 rounded-xl">
+        <div className="w-full px-4 md:px-10 py-12">
+          <div className="w-full bg-black/50 backdrop-blur-md p-6 md:p-10 rounded-lg text-white">
 
             <motion.h1
               initial={{ x: -40, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.8 }}
-              className="text-4xl md:text-5xl font-bold text-white mb-6"
+              className="text-4xl md:text-5xl font-semibold mb-4"
             >
               Farmycure Research
             </motion.h1>
@@ -173,7 +173,7 @@ const About = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-xl text-white/90 mb-4"
+              className="text-xl text-gray-200 mt-4 leading-relaxed"
             >
               Engineering the Future of Agriculture with Hybrid Agricultural Technology (HAT)
             </motion.p>
@@ -182,7 +182,7 @@ const About = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-lg text-white font-semibold mb-8"
+              className="text-lg text-gray-200 mt-4 leading-relaxed font-semibold"
             >
               Science-Led. Technology-Driven. Future-Ready.
             </motion.p>
@@ -191,7 +191,7 @@ const About = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="space-y-6 text-white/80 text-lg"
+              className="space-y-6 text-gray-200 text-lg mt-4 leading-relaxed"
             >
               <p>
                 At Farmycure, research is not an extension of farming — it is the foundation.
@@ -470,8 +470,8 @@ const About = () => {
                 Under his leadership, HAT has evolved into a structured technological framework that bridges core engineering principles with biological and agricultural sciences — establishing Farmycure as a serious contributor to Future Farming Solutions globally.
               </p>
 
-              <p className="text-gray-500">
-                Contact: <a href="mailto:ceo@foundmaker.com" className="text-[#1f4d36] hover:underline">ceo@foundmaker.com</a>
+              <p className="mt-6 text-gray-700">
+                Contact: <span className="font-medium">md@farmycure.com</span>
               </p>
             </motion.div>
 
@@ -488,6 +488,12 @@ const About = () => {
                 <p className="text-lg font-medium">Farmycure Research</p>
               </div>
             </motion.div>
+          </div>
+
+          <div className="my-10 border-t border-gray-200 pt-8 flex justify-center">
+            <button className="bg-[#1f4d36] text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-[#173c2b] transition">
+              Contact Me
+            </button>
           </div>
         </div>
       </section>
@@ -574,20 +580,6 @@ const About = () => {
           >
             Explore the Future of Farming with Farmycure.
           </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-          >
-            <a
-              href="mailto:ceo@foundmaker.com"
-              className="inline-block bg-white text-[#1f4d36] font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors duration-300"
-            >
-              Contact Our Research Team
-            </a>
-          </motion.div>
         </div>
       </section>
 

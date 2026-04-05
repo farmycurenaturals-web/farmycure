@@ -4,82 +4,61 @@ import { Helmet } from 'react-helmet-async'
 
 const Partners = () => {
   const [formData, setFormData] = useState({
-    companyName: '',
-    businessType: '',
-    yearsInOperation: '',
-    gstNumber: '',
-    registrationNumber: '',
-    website: '',
-    contactName: '',
-    designation: '',
-    phone: '',
+    name: '',
     email: '',
-    productsInterested: [],
-    estimatedVolume: '',
-    packagingPreference: '',
-    deliveryLocation: '',
-    startDate: '',
+    contactNumber: '',
+    product: '',
+    quantity: '',
+    legalTradeName: '',
+    gstVatNumber: '',
     message: ''
   })
 
+  const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
-
-  const businessTypes = [
-    'Retailer',
-    'Distributor',
-    'Restaurant / Hotel',
-    'Exporter',
-    'Food Manufacturer',
-    'Wholesaler',
-    'Other'
-  ]
-
-  const productsList = [
-    'Fruits',
-    'Vegetables',
-    'Grains',
-    'Non-Veg',
-    'All Categories'
-  ]
-
-  const volumeOptions = [
-    'Less than 100kg',
-    '100–500kg',
-    '500kg–1 Ton',
-    '1–5 Tons',
-    '5+ Tons'
-  ]
-
-  const packagingOptions = [
-    'Standard Bulk Packaging',
-    'Custom Packaging',
-    'Private Label'
-  ]
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }))
+    }
   }
 
-  const handleMultiSelect = (value) => {
-    setFormData(prev => {
-      const current = prev.productsInterested
-      if (current.includes(value)) {
-        return { ...prev, productsInterested: current.filter(p => p !== value) }
-      }
-      return { ...prev, productsInterested: [...current, value] }
-    })
+  const validateForm = () => {
+    const newErrors = {}
+
+    if (!formData.name.trim()) newErrors.name = 'Name is required'
+    if (!formData.email.trim()) newErrors.email = 'Email is required'
+    if (!formData.contactNumber.trim()) newErrors.contactNumber = 'Contact Number is required'
+    if (!formData.product.trim()) newErrors.product = 'Product is required'
+    
+    if (!formData.quantity) {
+      newErrors.quantity = 'Quantity is required'
+    } else if (Number(formData.quantity) < 100) {
+      newErrors.quantity = 'Minimum order quantity is 100 KGs'
+    }
+    
+    if (!formData.legalTradeName.trim()) newErrors.legalTradeName = 'Legal Trade Name is required'
+    if (!formData.gstVatNumber.trim()) newErrors.gstVatNumber = 'GST / VAT Number is required'
+    if (formData.message.length > 200) newErrors.message = 'Message must be under 200 characters'
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!validateForm()) return
+
     setIsSubmitting(true)
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500))
 
-    console.log('Partner submission:', formData)
+    console.log('Trade submission:', formData)
 
     setIsSubmitting(false)
     setIsSubmitted(true)
@@ -87,28 +66,16 @@ const Partners = () => {
     setTimeout(() => {
       setIsSubmitted(false)
       setFormData({
-        companyName: '',
-        businessType: '',
-        yearsInOperation: '',
-        gstNumber: '',
-        registrationNumber: '',
-        website: '',
-        contactName: '',
-        designation: '',
-        phone: '',
+        name: '',
         email: '',
-        productsInterested: [],
-        estimatedVolume: '',
-        packagingPreference: '',
-        deliveryLocation: '',
-        startDate: '',
+        contactNumber: '',
+        product: '',
+        quantity: '',
+        legalTradeName: '',
+        gstVatNumber: '',
         message: ''
       })
     }, 5000)
-  }
-
-  const scrollToForm = () => {
-    document.getElementById('partnership-form').scrollIntoView({ behavior: 'smooth' })
   }
 
   const whyFeatures = [
@@ -157,8 +124,8 @@ const Partners = () => {
   return (
     <>
       <Helmet>
-        <title>FarmyCure Partners | Wholesale & Business Collaboration</title>
-        <meta name="description" content="Partner with FarmyCure for bulk organic produce, grains, and livestock products. Reliable sourcing, scalable supply, and transparent farm-direct distribution." />
+        <title>FarmyCure Trade | Wholesale & Business Collaboration</title>
+        <meta name="description" content="Trade with FarmyCure for bulk organic produce, grains, and livestock products. Reliable sourcing, scalable supply, and transparent farm-direct distribution." />
       </Helmet>
 
       <main className="min-h-screen">
@@ -200,15 +167,15 @@ const Partners = () => {
                 Scale your business with reliable farm-direct sourcing, transparent supply chains, and bulk organic produce solutions.
               </motion.p>
 
-              <motion.button
+              <motion.a
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                onClick={scrollToForm}
-                className="bg-[#1f4d36] text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#163a2a] transition-colors"
+                href="#trade-form"
+                className="inline-block bg-[#1f4d36] text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#163a2a] transition-colors"
               >
-                Apply for Partnership
-              </motion.button>
+                Trade With Us
+              </motion.a>
             </div>
           </div>
         </section>
@@ -315,26 +282,26 @@ const Partners = () => {
           </div>
         </section>
 
-        {/* Partnership Application Form */}
-        <section id="partnership-form" className="py-20 bg-gray-50 px-6">
-          <div className="max-w-5xl mx-auto">
+        {/* Trade Form Section */}
+        <section id="trade-form" className="py-20 bg-gray-50 px-6">
+          <div className="max-w-4xl mx-auto">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-3xl md:text-4xl font-bold text-[#1f4d36] mb-4 text-center"
             >
-              Partnership Application Form
+              Trade With Us
             </motion.h2>
             <p className="text-gray-600 text-center mb-12">
-              Fill in your business details and our team will get back to you within 24-48 hours.
+              Fill in your trade requirements and our team will get back to you within 24–48 hours.
             </p>
 
             {isSubmitted ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-xl p-10 shadow-lg text-center max-w-2xl mx-auto"
+                className="bg-white rounded-2xl p-10 shadow-md text-center max-w-2xl mx-auto"
               >
                 <div className="w-16 h-16 bg-[#1f4d36] rounded-full flex items-center justify-center mx-auto mb-6">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -345,271 +312,150 @@ const Partners = () => {
                   Thank You!
                 </h3>
                 <p className="text-gray-600">
-                  Thank you for your interest in partnering with FarmyCure. Our B2B team will contact you within 24–48 business hours.
+                  Thank you for your trade request. Our team will contact you within 24–48 hours.
                 </p>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="bg-white rounded-xl p-8 shadow-lg">
-                {/* Company Information */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-[#1f4d36] mb-4 pb-2 border-b border-gray-200">
-                    Company Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Company Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Business Type <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        name="businessType"
-                        value={formData.businessType}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      >
-                        <option value="">Select Business Type</option>
-                        {businessTypes.map(type => (
-                          <option key={type} value={type}>{type}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Years in Operation <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        name="yearsInOperation"
-                        value={formData.yearsInOperation}
-                        onChange={handleChange}
-                        required
-                        min="0"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        GST Number
-                      </label>
-                      <input
-                        type="text"
-                        name="gstNumber"
-                        value={formData.gstNumber}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Business Registration Number
-                      </label>
-                      <input
-                        type="text"
-                        name="registrationNumber"
-                        value={formData.registrationNumber}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Website URL (Optional)
-                      </label>
-                      <input
-                        type="url"
-                        name="website"
-                        value={formData.website}
-                        onChange={handleChange}
-                        placeholder="https://"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Person */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-[#1f4d36] mb-4 pb-2 border-b border-gray-200">
-                    Contact Person
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="contactName"
-                        value={formData.contactName}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Designation <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="designation"
-                        value={formData.designation}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Business Requirements */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-[#1f4d36] mb-4 pb-2 border-b border-gray-200">
-                    Business Requirements
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Products Interested In <span className="text-red-500">*</span>
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {productsList.map(product => (
-                          <label key={product} className="flex items-center space-x-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formData.productsInterested.includes(product)}
-                              onChange={() => handleMultiSelect(product)}
-                              className="w-4 h-4 text-[#1f4d36] border-gray-300 rounded focus:ring-[#1f4d36]"
-                            />
-                            <span className="text-sm text-gray-700">{product}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Estimated Monthly Order Volume <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        name="estimatedVolume"
-                        value={formData.estimatedVolume}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      >
-                        <option value="">Select Volume</option>
-                        {volumeOptions.map(option => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Preferred Packaging Type
-                      </label>
-                      <select
-                        name="packagingPreference"
-                        value={formData.packagingPreference}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      >
-                        <option value="">Select Packaging</option>
-                        {packagingOptions.map(option => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Target Delivery Location <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="deliveryLocation"
-                        value={formData.deliveryLocation}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Expected Start Date
-                      </label>
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={formData.startDate}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Additional Details */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-[#1f4d36] mb-4 pb-2 border-b border-gray-200">
-                    Additional Details
-                  </h3>
+              <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-md">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Message / Requirements
+                      Name <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
                       onChange={handleChange}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1f4d36] focus:border-transparent"
-                      placeholder="Tell us more about your business requirements..."
+                      required
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
                     />
+                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                   </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    />
+                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                  </div>
+
+                  {/* Contact Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Contact Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="contactNumber"
+                      value={formData.contactNumber}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    />
+                    {errors.contactNumber && <p className="text-red-500 text-sm mt-1">{errors.contactNumber}</p>}
+                  </div>
+
+                  {/* Product */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Product <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="product"
+                      value={formData.product}
+                      onChange={handleChange}
+                      required
+                      placeholder="e.g. Rice, Wheat, Eggs, Fish"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    />
+                    {errors.product && <p className="text-red-500 text-sm mt-1">{errors.product}</p>}
+                  </div>
+
+                  {/* Quantity */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Quantity (in KGs) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={formData.quantity}
+                      onChange={handleChange}
+                      required
+                      min="100"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    />
+                    {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
+                  </div>
+
+                  {/* Legal Trade Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Legal Trade Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="legalTradeName"
+                      value={formData.legalTradeName}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    />
+                    {errors.legalTradeName && <p className="text-red-500 text-sm mt-1">{errors.legalTradeName}</p>}
+                  </div>
+
+                  {/* GST / VAT Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      GST / VAT Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="gstVatNumber"
+                      value={formData.gstVatNumber}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    />
+                    {errors.gstVatNumber && <p className="text-red-500 text-sm mt-1">{errors.gstVatNumber}</p>}
+                  </div>
+                </div>
+
+                {/* Message - Full Width */}
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    maxLength={200}
+                    rows={4}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    placeholder="Tell us more about your trade requirements..."
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    {formData.message.length}/200 characters
+                  </p>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#1f4d36] text-white py-4 rounded-lg font-semibold text-lg hover:bg-[#163a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[#1f4d36] text-white py-3 rounded-lg font-medium hover:bg-[#173c2b] transition mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center justify-center">
@@ -620,7 +466,7 @@ const Partners = () => {
                       Submitting...
                     </span>
                   ) : (
-                    'Submit Application'
+                    'Submit Trade Request'
                   )}
                 </button>
               </form>
