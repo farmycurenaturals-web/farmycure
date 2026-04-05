@@ -7,7 +7,7 @@
     "dev:user": "npm run dev --prefix Organic_02/user_frontend",
     "dev:admin": "npm run dev --prefix Organic_02/admin_frontend",
     "dev:backend": "npm run dev --prefix Organic_02/backend",
-    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:user\" \"npm run dev:admin\""
+    "dev:all": "concurrently -n backend,user,admin -c blue,green,magenta \"npm run dev:backend\" \"npm run dev:user\" \"npm run dev:admin\""
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

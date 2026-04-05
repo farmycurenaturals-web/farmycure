@@ -6,11 +6,8 @@ import { useAuth } from '../context/AuthContext';
 const Login = () => {
   const navigate = useNavigate();
   const { setSession } = useAuth();
-  const [isRegister, setIsRegister] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('admin');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -19,11 +16,12 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      const data = isRegister
-        ? await api.register({ name, email, password, role })
-        : await api.login({ email, password });
+      const data = await api.login({
+        username: username.trim().toLowerCase(),
+        password,
+      });
       if (!['admin', 'owner'].includes(data.role)) {
-        setError('Only admin/owner can access admin dashboard.');
+        setError('Only admin accounts can access this dashboard.');
         setLoading(false);
         return;
       }
@@ -39,30 +37,19 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-md bg-white border border-gray-100 rounded-xl p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {isRegister ? 'Create Admin Credentials' : 'Admin Login'}
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Login</h1>
         <p className="text-sm text-gray-500 mb-5">
-          {isRegister ? 'Create admin/owner account and access dashboard.' : 'Use admin or owner credentials.'}
+          Sign in with your admin username and password.
         </p>
         {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
         <div className="space-y-4">
-          {isRegister && (
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5"
-              required
-            />
-          )}
           <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full border border-gray-200 rounded-lg px-4 py-2.5"
+            autoComplete="username"
             required
           />
           <input
@@ -71,34 +58,15 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full border border-gray-200 rounded-lg px-4 py-2.5"
+            autoComplete="current-password"
             required
           />
-          {isRegister && (
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5"
-            >
-              <option value="admin">Admin</option>
-              <option value="owner">Owner</option>
-            </select>
-          )}
           <button
             type="submit"
             className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg py-2.5 font-medium"
             disabled={loading}
           >
-            {loading ? 'Please wait...' : isRegister ? 'Create Credentials' : 'Login'}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsRegister((prev) => !prev);
-              setError('');
-            }}
-            className="w-full text-sm text-green-700 hover:text-green-800"
-          >
-            {isRegister ? 'Already have credentials? Login' : 'No credentials? Create admin account'}
+            {loading ? 'Please wait...' : 'Login'}
           </button>
         </div>
       </form>

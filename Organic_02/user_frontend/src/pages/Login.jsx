@@ -119,13 +119,14 @@ const Login = () => {
                 <option value="trade">Trade</option>
               </select>
             )}
-            <Button variant="primary" className="w-full" disabled={loading}>
+            <Button type="submit" variant="primary" className="w-full" disabled={loading}>
               {loading ? 'Please wait...' : isRegister ? 'Create Account' : 'Login'}
             </Button>
           </form>
 
           <div className="mt-4 text-sm text-center">
             <button
+              type="button"
               onClick={() => {
                 setIsRegister((v) => !v)
                 setError('')

@@ -1,4 +1,10 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+/**
+ * Dev: same-origin /api via Vite proxy → backend :5000 (works with LAN IP too).
+ * Production: set VITE_API_BASE_URL to your API (e.g. https://api.example.com/api).
+ */
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? '/api' : 'http://localhost:5000/api');
 
 const getAuthToken = () => localStorage.getItem('farmycure_token');
 const getRefreshToken = () => localStorage.getItem('farmycure_refresh_token');
@@ -94,5 +100,8 @@ export const api = {
     forgotPassword: (email) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
     resetPassword: (resetToken, newPassword) =>
       request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ resetToken, newPassword }) })
-  }
+  },
+  contact: {
+    submit: (payload) => request('/contact', { method: 'POST', body: JSON.stringify(payload) }),
+  },
 };

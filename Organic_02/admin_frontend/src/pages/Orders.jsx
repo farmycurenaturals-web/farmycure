@@ -3,6 +3,7 @@ import { Table } from '../components/Table';
 import { getStatusBadge } from '../components/statusBadge';
 import { api } from '../services/api';
 import { AlertCircle } from 'lucide-react';
+import { formatINR } from '../utils/currency';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -62,9 +63,13 @@ const Orders = () => {
       }
     },
     { 
-      title: 'Total', 
+      title: 'Total (INR)', 
       dataIndex: 'totalPrice',
-      render: (row) => <span className="font-medium text-gray-900">${row.totalPrice || row.total || '0.00'}</span> 
+      render: (row) => (
+        <span className="font-medium text-gray-900">
+          {formatINR(row.totalPrice ?? row.total ?? 0)}
+        </span>
+      ),
     },
     { 
       title: 'Status Action', 

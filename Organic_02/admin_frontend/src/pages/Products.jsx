@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, X, AlertCircle } from 'lucide-react';
 import { Table } from '../components/Table';
 import { api } from '../services/api';
+import { formatINR } from '../utils/currency';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -74,7 +75,7 @@ const Products = () => {
 
     // Validation
     if (!formData.name) return setFormError('Name is required');
-    if (!formData.price || isNaN(formData.price)) return setFormError('Price must be a valid number');
+    if (!formData.price || isNaN(formData.price)) return setFormError('Price must be a valid number (INR)');
     if (!formData.category) return setFormError('Category is required');
 
     try {
@@ -130,7 +131,7 @@ const Products = () => {
           )}
           <div>
             <span className="font-medium text-gray-900 block">{row.name}</span>
-            <span className="text-xs text-gray-500">${row.price}</span>
+            <span className="text-xs text-gray-500">{formatINR(row.price)}</span>
           </div>
         </div>
       )
@@ -289,14 +290,16 @@ const Products = () => {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Price (INR) *</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2 text-gray-500 text-sm">$</span>
+                      <span className="absolute left-3 top-2 text-gray-500 text-sm font-medium" aria-hidden>₹</span>
                       <input 
                         type="text" 
+                        inputMode="decimal"
+                        placeholder="e.g. 299"
                         value={formData.price}
                         onChange={(e) => setFormData({...formData, price: e.target.value})}
-                        className="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-colors"
+                        className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-colors"
                       />
                     </div>
                   </div>

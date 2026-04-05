@@ -55,7 +55,7 @@ const ResetPassword = () => {
               minLength={6}
               required
             />
-            <Button variant="primary" className="w-full" disabled={loading}>
+            <Button type="submit" variant="primary" className="w-full" disabled={loading}>
               {loading ? 'Please wait...' : 'Reset Password'}
             </Button>
           </form>

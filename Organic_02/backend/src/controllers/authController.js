@@ -31,12 +31,20 @@ const authResponse = (user, accessToken, refreshToken) => ({
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, password, role } = req.body;
+    const email = String(req.body?.email || '')
+      .trim()
+      .toLowerCase();
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'name, email and password are required' });
     }
     if (String(password).length < 6) {
       return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const requestedRole = role || 'user';
+    if (['admin', 'owner'].includes(requestedRole)) {
+      return res.status(403).json({ message: 'Admin registration is not allowed' });
     }
 
     const existingUser = await User.findOne({ email });
@@ -51,7 +59,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: role || 'user'
+      role: requestedRole
     });
 
     const accessToken = buildAccessToken(user);
@@ -70,12 +78,15 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: 'email and password are required' });
+    const { email, username, password } = req.body;
+    const loginId = String(username || email || '')
+      .trim()
+      .toLowerCase();
+    if (!loginId || !password) {
+      return res.status(400).json({ message: 'Username and password are required' });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: loginId });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -141,7 +152,9 @@ const logoutUser = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = String(req.body?.email || '')
+      .trim()
+      .toLowerCase();
     if (!email) {
       return res.status(400).json({ message: 'email is required' });
     }

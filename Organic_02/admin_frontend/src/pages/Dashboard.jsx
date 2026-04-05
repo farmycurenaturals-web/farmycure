@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import StatCard from '../components/StatCard';
 import { Table } from '../components/Table';
 import { getStatusBadge } from '../components/statusBadge';
-import { DollarSign, ShoppingCart, Package, Users } from 'lucide-react';
+import { IndianRupee, ShoppingCart, Package, Users } from 'lucide-react';
 import { api } from '../services/api';
+import { formatINR } from '../utils/currency';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -82,9 +83,13 @@ const Dashboard = () => {
       }
     },
     { 
-      title: 'Total', 
+      title: 'Total (INR)', 
       dataIndex: 'totalPrice',
-      render: (row) => <span className="font-medium text-gray-900">${Number(row.totalPrice || row.total || 0).toFixed(2)}</span> 
+      render: (row) => (
+        <span className="font-medium text-gray-900">
+          {formatINR(row.totalPrice ?? row.total ?? 0)}
+        </span>
+      ),
     },
     { 
       title: 'Status', 
@@ -111,8 +116,8 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard 
               title="Total Revenue" 
-              value={`$${stats.revenue.toFixed(2)}`} 
-              icon={<DollarSign size={20} />} 
+              value={formatINR(stats.revenue)} 
+              icon={<IndianRupee size={20} />} 
               trend="up" 
               trendValue="12.5%" 
             />

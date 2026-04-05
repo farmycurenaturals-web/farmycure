@@ -1,9 +1,37 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const { seedDataIfEmpty } = require('./config/seedData');
+const { seedAdminUsers } = require('./config/seedAdminUsers');
+
+/** If Mongo was down at startup, run seeds on first successful API DB connection. */
+let deferredSeedNeeded = false;
+
+const ensureMongo = async (req, res, next) => {
+  if (!req.path.startsWith('/api')) return next();
+  if (req.path === '/api/health' || req.path === '/api') return next();
+  try {
+    await connectDB.ensureConnected();
+    if (deferredSeedNeeded && connectDB.isConnected()) {
+      deferredSeedNeeded = false;
+      try {
+        await seedDataIfEmpty();
+        await seedAdminUsers();
+        console.log('Deferred seed OK (Mongo came online).');
+      } catch (seedErr) {
+        deferredSeedNeeded = true;
+        console.error('Deferred seed failed:', seedErr.message);
+      }
+    }
+  } catch (err) {
+    return res.status(503).json({
+      message: 'Database is not available. Check MONGO_URI and Atlas network access.',
+      error: err.message,
+    });
+  }
+  next();
+};
 
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
@@ -19,34 +47,35 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-connectDB();
-seedDataIfEmpty().catch((err) => {
-  console.error('Seed failed:', err.message);
-});
-
 app.get('/api', (req, res) => {
   res.json({ message: 'FarmyCure backend running' });
 });
 
-app.get('/api/health', (_req, res) => {
-  const states = {
-    0: 'disconnected',
-    1: 'connected',
-    2: 'connecting',
-    3: 'disconnecting'
-  };
-  const mongoState = mongoose.connection.readyState;
-  const isHealthy = mongoState === 1;
-  return res.status(isHealthy ? 200 : 503).json({
-    status: isHealthy ? 'ok' : 'degraded',
+app.get('/api/health', async (_req, res) => {
+  const { readyState, label } = connectDB.getMongoState();
+  let healthy = readyState === 1;
+  if (!healthy) {
+    try {
+      await connectDB.ensureConnected();
+      healthy = connectDB.isConnected();
+    } catch {
+      healthy = false;
+    }
+  }
+  const { readyState: rs, label: lb } = connectDB.getMongoState();
+  return res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'ok' : 'degraded',
     server: 'up',
     mongodb: {
-      state: states[mongoState] || 'unknown',
-      readyState: mongoState
+      state: lb,
+      readyState: rs,
+      connected: healthy,
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
+
+app.use(ensureMongo);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
@@ -59,6 +88,39 @@ app.use('/api/contact', contactRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+async function start() {
+  try {
+    await connectDB({ exitOnFailure: false });
+  } catch (err) {
+    console.error('Initial MongoDB connection failed:', err.message);
+    console.warn('API will still listen so the admin proxy works; fix MONGO_URI / Atlas, then restart or wait for reconnect.');
+  }
+
+  if (connectDB.isConnected()) {
+    try {
+      await seedDataIfEmpty();
+      console.log('Product/category seed OK');
+    } catch (err) {
+      console.error('Seed failed:', err.message);
+    }
+    try {
+      await seedAdminUsers();
+      console.log('Admin users seed OK (mdfarmycure, techfarmycure)');
+    } catch (err) {
+      console.error('Admin seed failed:', err.message);
+    }
+    deferredSeedNeeded = false;
+  } else {
+    deferredSeedNeeded = true;
+    console.warn('Skipping seeds until MongoDB is connected (will run on first API request after connect).');
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://127.0.0.1:${PORT} (and LAN)`);
+  });
+}
+
+start().catch((err) => {
+  console.error('Server failed to start:', err);
+  process.exit(1);
 });
