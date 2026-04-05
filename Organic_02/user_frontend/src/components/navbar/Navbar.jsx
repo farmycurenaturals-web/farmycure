@@ -6,6 +6,7 @@ import MobileMenu from './MobileMenu'
 import CartIcon from './CartIcon'
 import { Container } from '../ui/Container'
 import Logo from '../../assets/icons/Logo.svg'
+import { useAuth } from '../../context/AuthContext'
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -14,6 +15,7 @@ const Navbar = () => {
   const isHomePage = location.pathname === '/'
 
   const shouldBeTransparent = isHomePage && !isScrolled
+  const { isAuthenticated, user, logout } = useAuth()
 
   return (
     <>
@@ -51,6 +53,18 @@ const Navbar = () => {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
               <NavLinks isTransparent={shouldBeTransparent} />
+              {isAuthenticated ? (
+                <button
+                  onClick={logout}
+                  className={`text-sm font-medium ${shouldBeTransparent ? 'text-white' : 'text-forest'}`}
+                >
+                  Logout ({user?.role})
+                </button>
+              ) : (
+                <Link to="/login" className={`text-sm font-medium ${shouldBeTransparent ? 'text-white' : 'text-forest'}`}>
+                  Login
+                </Link>
+              )}
               <CartIcon isTransparent={shouldBeTransparent} />
             </div>
 

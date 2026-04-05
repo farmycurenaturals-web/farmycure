@@ -1,9 +1,14 @@
 import { motion } from 'framer-motion'
-import { categories } from '../../data/categories'
 
-const CategoryFilter = ({ activeCategory, onCategoryChange }) => {
+const CategoryFilter = ({ activeCategory, onCategoryChange, categories = [] }) => {
   const allOption = { id: null, name: 'All Products' }
-  const filterOptions = [allOption, ...categories]
+  const filterOptions = [
+    allOption,
+    ...categories.map((cat) => ({
+      id: cat.categoryCode || cat.slug,
+      name: cat.name
+    }))
+  ]
 
   const isNonVegCategory = (categoryId) => categoryId === 'nonVeg'
 

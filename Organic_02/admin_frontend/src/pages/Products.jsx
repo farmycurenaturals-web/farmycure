@@ -110,7 +110,7 @@ const Products = () => {
         setSuccess('Product deleted successfully!');
         fetchProducts();
         setTimeout(() => setSuccess(''), 3000);
-      } catch (err) {
+      } catch {
         setError('Error deleting product');
         setTimeout(() => setError(''), 3000);
       }

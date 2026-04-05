@@ -5,8 +5,9 @@ import { Container } from '../components/ui/Container'
 import { Button } from '../components/ui/Button'
 import { useCart } from '../context/CartContext'
 import { fadeInUp } from '../animations/variants'
+import { api } from '../services/api'
 
-const RAZORPAY_KEY = 'rzp_test_1234567890'
+const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_1234567890'
 
 const InputField = ({ label, name, type = 'text', value, onChange, error, placeholder }) => (
   <div>
@@ -164,23 +165,57 @@ const Checkout = () => {
 
     const amountInPaise = totalPrice * 100
 
+    let razorpayOrder
+    try {
+      razorpayOrder = await api.payments.createOrder(amountInPaise)
+    } catch (_error) {
+      alert('Unable to create payment order. Please try again.')
+      setIsProcessing(false)
+      return
+    }
+
     const options = {
       key: RAZORPAY_KEY,
       amount: amountInPaise,
       currency: 'INR',
+      order_id: razorpayOrder.id,
       name: 'FarmyCure',
       description: `Order of ${totalItems} item${totalItems !== 1 ? 's' : ''}`,
       image: '/logo.png',
-      handler: function (response) {
-        const orderId = 'FC' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase()
-        clearCart()
-        navigate('/order-success', { 
-          state: { 
-            orderId,
-            paymentId: response.razorpay_payment_id,
-            totalAmount: totalPrice
-          } 
-        })
+      handler: async function (response) {
+        try {
+          await api.payments.verifySignature(response)
+          const orderPayload = {
+            shippingAddress: formData,
+            items: items.map((item) => ({
+              productId: item.product.id,
+              variant: item.product.selectedVariant || 'default',
+              quantity: item.quantity,
+              price: item.product.price,
+              title: item.product.title,
+              image: item.product.image,
+              category: item.product.category
+            })),
+            totalPrice,
+            razorpay: {
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature
+            }
+          }
+          const order = await api.orders.create(orderPayload)
+          clearCart()
+          navigate('/order-success', {
+            state: {
+              orderId: order._id,
+              paymentId: response.razorpay_payment_id,
+              totalAmount: totalPrice
+            }
+          })
+        } catch (_error) {
+          alert('Payment verification failed. Please contact support.')
+          setIsProcessing(false)
+        }
       },
       prefill: {
         name: formData.fullName,
@@ -207,7 +242,7 @@ const Checkout = () => {
         setIsProcessing(false)
       })
       razorpay.open()
-    } catch (error) {
+    } catch {
       alert('Something went wrong. Please try again.')
       setIsProcessing(false)
     }

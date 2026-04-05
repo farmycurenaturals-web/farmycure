@@ -1,15 +1,9 @@
-import { createContext, useContext, useReducer, useCallback } from 'react'
+/* eslint-disable react-refresh/only-export-components -- CartProvider + useCart pair */
+import { createContext, useContext, useCallback, useEffect, useMemo, useState } from 'react'
+import { api } from '../services/api'
 
 const CartContext = createContext(null)
 
-const ACTIONS = {
-  ADD_TO_CART: 'ADD_TO_CART',
-  REMOVE_FROM_CART: 'REMOVE_FROM_CART',
-  UPDATE_QUANTITY: 'UPDATE_QUANTITY',
-  CLEAR_CART: 'CLEAR_CART',
-}
-
-// Generate unique cart item key based on product id and selected options
 const getCartItemKey = (item) => {
   const typePart = item.selectedType || item.selectedSubType || ''
   const qtyPart = item.selectedQuantity || ''
@@ -21,91 +15,76 @@ const calculateTotals = (items) => ({
   totalPrice: items.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
 })
 
-const cartReducer = (state, action) => {
-  let newItems
-
-  switch (action.type) {
-    case ACTIONS.ADD_TO_CART: {
-      const { product, quantity = 1 } = action.payload
-      const itemKey = getCartItemKey(product)
-
-      const existingIndex = state.items.findIndex(
-        (item) => getCartItemKey(item.product) === itemKey
-      )
-
-      if (existingIndex >= 0) {
-        newItems = state.items.map((item, index) =>
-          index === existingIndex
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        )
-      } else {
-        newItems = [...state.items, { product, quantity }]
-      }
-
-      return { items: newItems, ...calculateTotals(newItems) }
+const toUiItems = (serverCart) => {
+  if (!serverCart?.items) return []
+  return serverCart.items.map((item) => ({
+    _id: item._id,
+    quantity: item.quantity,
+    product: {
+      id: item.productId?._id || item.productId,
+      title: item.title || item.productId?.title || item.productId?.name || 'Product',
+      image: item.image || item.productId?.image || '',
+      category: item.category || item.productId?.category || '',
+      selectedVariant: item.variant,
+      price: item.price
     }
-
-    case ACTIONS.REMOVE_FROM_CART: {
-      const { itemKey } = action.payload
-      newItems = state.items.filter(
-        (item) => getCartItemKey(item.product) !== itemKey
-      )
-      return { items: newItems, ...calculateTotals(newItems) }
-    }
-
-    case ACTIONS.UPDATE_QUANTITY: {
-      const { itemKey, quantity } = action.payload
-      if (quantity <= 0) {
-        newItems = state.items.filter((item) => getCartItemKey(item.product) !== itemKey)
-      } else {
-        newItems = state.items.map((item) =>
-          getCartItemKey(item.product) === itemKey ? { ...item, quantity } : item
-        )
-      }
-      return { items: newItems, ...calculateTotals(newItems) }
-    }
-
-    case ACTIONS.CLEAR_CART:
-      return { items: [], totalItems: 0, totalPrice: 0 }
-
-    default:
-      return state
-  }
-}
-
-const initialState = {
-  items: [],
-  totalItems: 0,
-  totalPrice: 0,
+  }))
 }
 
 export const CartProvider = ({ children }) => {
-  const [cart, dispatch] = useReducer(cartReducer, initialState)
+  const [items, setItems] = useState([])
+
+  const cart = useMemo(() => ({ items, ...calculateTotals(items) }), [items])
+
+  const refreshCart = useCallback(async () => {
+    try {
+      const serverCart = await api.cart.get()
+      setItems(toUiItems(serverCart))
+    } catch {
+      setItems([])
+    }
+  }, [])
+
+  useEffect(() => {
+    refreshCart()
+  }, [refreshCart])
 
   const addToCart = useCallback((product, quantity = 1) => {
-    dispatch({ type: ACTIONS.ADD_TO_CART, payload: { product, quantity } })
-  }, [])
+    const payload = {
+      productId: product.id,
+      variant: product.selectedVariant || product.selectedQuantity || 'default',
+      quantity,
+      price: product.price,
+      title: product.title,
+      image: product.image,
+      category: product.category
+    }
+    api.cart.add(payload).then(refreshCart).catch(() => null)
+  }, [refreshCart])
 
   const removeFromCart = useCallback((itemKey) => {
-    dispatch({ type: ACTIONS.REMOVE_FROM_CART, payload: { itemKey } })
-  }, [])
+    const item = items.find((entry) => getCartItemKey(entry.product) === itemKey)
+    if (!item?._id) return
+    api.cart.remove(item._id).then(refreshCart).catch(() => null)
+  }, [items, refreshCart])
 
   const updateQuantity = useCallback((itemKey, quantity) => {
-    dispatch({ type: ACTIONS.UPDATE_QUANTITY, payload: { itemKey, quantity } })
-  }, [])
+    const item = items.find((entry) => getCartItemKey(entry.product) === itemKey)
+    if (!item?._id) return
+    api.cart.updateItem(item._id, quantity).then(refreshCart).catch(() => null)
+  }, [items, refreshCart])
 
   const clearCart = useCallback(() => {
-    dispatch({ type: ACTIONS.CLEAR_CART })
-  }, [])
+    api.cart.clear().then(refreshCart).catch(() => null)
+  }, [refreshCart])
 
   const getItemQuantity = useCallback(
     (product) => {
       const itemKey = getCartItemKey(product)
-      const item = cart.items.find((item) => getCartItemKey(item.product) === itemKey)
+      const item = items.find((entry) => getCartItemKey(entry.product) === itemKey)
       return item ? item.quantity : 0
     },
-    [cart.items]
+    [items]
   )
 
   return (

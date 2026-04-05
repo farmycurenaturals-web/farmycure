@@ -1,10 +1,17 @@
 import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
 import { Container } from '../ui/Container'
 import CategoryCard from './CategoryCard'
-import { categories } from '../../data/categories'
 import { fadeInUp, staggerContainer } from '../../animations/variants'
+import { api } from '../../services/api'
 
 const CategorySection = () => {
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => {
+    api.categories.list().then(setCategories).catch(() => setCategories([]))
+  }, [])
+
   return (
     <section className="py-16 md:py-24 bg-background">
       <Container>
@@ -34,8 +41,11 @@ const CategorySection = () => {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {categories.map((category) => (
-            <motion.div key={category.id} variants={fadeInUp}>
-              <CategoryCard category={category} />
+            <motion.div key={category._id} variants={fadeInUp}>
+              <CategoryCard category={{
+                ...category,
+                id: category.categoryCode || category.slug
+              }} />
             </motion.div>
           ))}
         </motion.div>

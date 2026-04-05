@@ -1,7 +1,12 @@
 import React from 'react';
 import { Bell, Search } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Topbar = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <header className="h-16 bg-white border-b border-gray-100 sticky top-0 z-10 w-full flex items-center justify-between px-6 lg:px-8">
       {/* Search Bar */}
@@ -27,9 +32,15 @@ const Topbar = () => {
         </button>
 
         {/* Admin Avatar */}
-        <div className="h-8 w-8 rounded-full bg-green-600 flex items-center justify-center text-white font-medium text-sm cursor-pointer shadow-sm">
-          A
-        </div>
+        <button
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }}
+          className="text-xs px-3 py-1.5 border border-gray-200 rounded-md text-gray-700 hover:bg-gray-50"
+        >
+          Logout ({user?.role || 'admin'})
+        </button>
       </div>
     </header>
   );

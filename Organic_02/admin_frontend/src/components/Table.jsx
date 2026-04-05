@@ -1,22 +1,5 @@
 import React from 'react';
 
-const getStatusBadge = (status) => {
-  const baseClasses = "px-2.5 py-1 text-xs font-semibold rounded-full";
-  
-  switch (status.toLowerCase()) {
-    case 'completed':
-      return <span className={`${baseClasses} bg-green-100 text-green-700`}>Completed</span>;
-    case 'pending':
-      return <span className={`${baseClasses} bg-yellow-100 text-yellow-700`}>Pending</span>;
-    case 'cancelled':
-      return <span className={`${baseClasses} bg-red-100 text-red-700`}>Cancelled</span>;
-    case 'processing':
-      return <span className={`${baseClasses} bg-blue-100 text-blue-700`}>Processing</span>;
-    default:
-      return <span className={`${baseClasses} bg-gray-100 text-gray-700`}>{status}</span>;
-  }
-};
-
 const Table = ({ columns, data, keyExtractor }) => {
   return (
     <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -25,8 +8,8 @@ const Table = ({ columns, data, keyExtractor }) => {
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
               {columns.map((col, index) => (
-                <th 
-                  key={index} 
+                <th
+                  key={index}
                   className="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider"
                 >
                   {col.title}
@@ -59,4 +42,4 @@ const Table = ({ columns, data, keyExtractor }) => {
   );
 };
 
-export { Table, getStatusBadge };
+export { Table };

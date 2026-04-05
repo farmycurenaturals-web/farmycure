@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StatCard from '../components/StatCard';
-import { Table, getStatusBadge } from '../components/Table';
+import { Table } from '../components/Table';
+import { getStatusBadge } from '../components/statusBadge';
 import { DollarSign, ShoppingCart, Package, Users } from 'lucide-react';
 import { api } from '../services/api';
 

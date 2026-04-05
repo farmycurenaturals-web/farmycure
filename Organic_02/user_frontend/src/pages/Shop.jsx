@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Container } from '../components/ui/Container'
@@ -6,9 +6,8 @@ import CategoryFilter from '../components/shop/CategoryFilter'
 import MobileFilters from '../components/shop/MobileFilters'
 import ShopProductCard from '../components/shop/ShopProductCard'
 import ProductModal from '../components/shop/ProductModal'
-import { products, getProductsByCategory } from '../data/products'
-import { categories } from '../data/categories'
 import { fadeInUp, staggerContainer } from '../animations/variants'
+import { api } from '../services/api'
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -17,17 +16,37 @@ const Shop = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isBuyNow, setIsBuyNow] = useState(false)
+  const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
 
   const isValidCategory = (slug) =>
-    categories.some((cat) => cat.id === slug)
+    categories.some((cat) => (cat.categoryCode || cat.slug) === slug)
 
   const effectiveCategory = activeCategory && isValidCategory(activeCategory)
     ? activeCategory
     : null
 
   const filteredProducts = useMemo(() => {
-    return getProductsByCategory(effectiveCategory)
-  }, [effectiveCategory])
+    if (!effectiveCategory) return products
+    return products.filter((p) => p.category === effectiveCategory)
+  }, [effectiveCategory, products])
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const [productsData, categoriesData] = await Promise.all([
+          api.products.list(),
+          api.categories.list()
+        ])
+        setProducts(productsData)
+        setCategories(categoriesData)
+      } catch (_error) {
+        setProducts([])
+        setCategories([])
+      }
+    }
+    loadInitialData()
+  }, [])
 
   const handleCategoryChange = (categoryId) => {
     if (categoryId) {
@@ -50,7 +69,7 @@ const Shop = () => {
   }
 
   const activeCategoryName = effectiveCategory
-    ? categories.find((c) => c.id === effectiveCategory)?.name
+    ? categories.find((c) => (c.categoryCode || c.slug) === effectiveCategory)?.name
     : 'All Products'
 
   return (
@@ -76,6 +95,7 @@ const Shop = () => {
         <MobileFilters
           activeCategory={effectiveCategory}
           onCategoryChange={handleCategoryChange}
+          categories={categories}
         />
 
         {/* Desktop Layout: Sidebar + Grid */}
@@ -86,6 +106,7 @@ const Shop = () => {
               <CategoryFilter
                 activeCategory={effectiveCategory}
                 onCategoryChange={handleCategoryChange}
+                categories={categories}
               />
             </div>
           </div>
@@ -111,7 +132,7 @@ const Shop = () => {
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
                 {filteredProducts.map((product) => (
-                  <motion.div key={product.id} variants={fadeInUp}>
+                  <motion.div key={product._id} variants={fadeInUp}>
                     <ShopProductCard product={product} onOpenModal={openProductModal} />
                   </motion.div>
                 ))}

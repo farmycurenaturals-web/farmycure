@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import NavLinks from './NavLinks'
 import CartIcon from './CartIcon'
 import { slideInRight } from '../../animations/variants'
+import { useAuth } from '../../context/AuthContext'
 
 const MobileMenu = ({ isOpen, onClose }) => {
+  const { isAuthenticated, logout } = useAuth()
   return (
     <AnimatePresence>
       {isOpen && (
@@ -58,6 +60,23 @@ const MobileMenu = ({ isOpen, onClose }) => {
               {/* Navigation Links */}
               <nav className="flex-1 p-6">
                 <NavLinks onClick={onClose} />
+                <div className="mt-4">
+                  {isAuthenticated ? (
+                    <button
+                      onClick={() => {
+                        logout()
+                        onClose()
+                      }}
+                      className="text-sm font-medium text-forest"
+                    >
+                      Logout
+                    </button>
+                  ) : (
+                    <Link to="/login" onClick={onClose} className="text-sm font-medium text-forest">
+                      Login
+                    </Link>
+                  )}
+                </div>
               </nav>
 
               {/* Footer */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, getStatusBadge } from '../components/Table';
+import { Table } from '../components/Table';
+import { getStatusBadge } from '../components/statusBadge';
 import { api } from '../services/api';
 import { AlertCircle } from 'lucide-react';
 
@@ -33,7 +34,7 @@ const Orders = () => {
       setSuccess(`Order #${(orderId).substring(0,8)} status updated to ${newStatus}`);
       fetchOrders();
       setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
+    } catch {
       setError('Failed to update order status');
       setTimeout(() => setError(''), 3000);
     }

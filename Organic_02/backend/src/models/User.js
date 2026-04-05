@@ -8,7 +8,9 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    lowercase: true,
+    trim: true
   },
   password: {
     type: String,
@@ -16,7 +18,24 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
+    enum: ['user', 'admin', 'owner', 'trade'],
     default: 'user'
+  },
+  refreshTokens: [
+    {
+      token: {
+        type: String
+      },
+      expiresAt: {
+        type: Date
+      }
+    }
+  ],
+  passwordResetTokenHash: {
+    type: String
+  },
+  passwordResetExpiresAt: {
+    type: Date
   },
   createdAt: {
     type: Date,

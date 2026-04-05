@@ -4,7 +4,11 @@ const cartSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
+  },
+  sessionId: {
+    type: String,
+    index: true
   },
   items: [
     {
@@ -25,9 +29,18 @@ const cartSchema = new mongoose.Schema({
       price: {
         type: Number,
         required: true
+      },
+      title: {
+        type: String
+      },
+      image: {
+        type: String
+      },
+      category: {
+        type: String
       }
     }
   ]
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Cart', cartSchema);

@@ -1,8 +1,12 @@
-import { categories } from '../../data/categories'
-
-const MobileFilters = ({ activeCategory, onCategoryChange }) => {
+const MobileFilters = ({ activeCategory, onCategoryChange, categories = [] }) => {
   const allOption = { id: null, name: 'All' }
-  const filterOptions = [allOption, ...categories]
+  const filterOptions = [
+    allOption,
+    ...categories.map((cat) => ({
+      id: cat.categoryCode || cat.slug,
+      name: cat.name
+    }))
+  ]
 
   return (
     <div className="lg:hidden mb-6 overflow-x-auto">

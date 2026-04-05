@@ -1,7 +1,5 @@
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { Card } from '../ui/Card'
-import { getStartingPrice } from '../../data/products'
+import { getStartingPrice } from '../../utils/productPricing'
 
 const ShopProductCard = ({ product, onOpenModal }) => {
   const startingPrice = getStartingPrice(product)
@@ -17,7 +15,7 @@ const ShopProductCard = ({ product, onOpenModal }) => {
         <div className="relative h-48 md:h-56 overflow-hidden bg-gray-100">
           <img
             src={product.image}
-            alt={product.title}
+            alt={product.title || product.name}
             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
             onError={(e) => {
               e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop'
@@ -41,7 +39,7 @@ const ShopProductCard = ({ product, onOpenModal }) => {
           className="cursor-pointer"
         >
           <h3 className="font-heading text-lg font-semibold text-text-primary mb-2 hover:text-forest transition-colors">
-            {product.title}
+            {product.title || product.name}
           </h3>
         </div>
         <p className="font-body text-sm text-gray-600 mb-4 flex-1">

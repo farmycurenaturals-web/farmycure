@@ -9,11 +9,10 @@ import {
   hasTypeVariants,
   getVariantTypes,
   getQuantities,
-  getPrice,
-  getProductById
-} from '../data/products'
-import { categories } from '../data/categories'
+  getPrice
+} from '../utils/productPricing'
 import { fadeIn, fadeInUp } from '../animations/variants'
+import { api } from '../services/api'
 
 const ProductDetails = () => {
   const { id } = useParams()
@@ -22,9 +21,26 @@ const ProductDetails = () => {
   const [selectedSubType, setSelectedSubType] = useState(null)
   const [selectedQuantity, setSelectedQuantity] = useState(null)
   const [added, setAdded] = useState(false)
+  const [product, setProduct] = useState(null)
+  const [categories, setCategories] = useState([])
 
-  const product = getProductById(id)
-  const isRice = product?.id === 'rice'
+  const isRice = (product?.productCode || product?._id) === 'rice'
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [productData, categoriesData] = await Promise.all([
+          api.products.getById(id),
+          api.categories.list()
+        ])
+        setProduct(productData)
+        setCategories(categoriesData)
+      } catch (_error) {
+        setProduct(null)
+      }
+    }
+    loadData()
+  }, [id])
 
   // Reset selections when product changes
   useEffect(() => {
@@ -52,7 +68,7 @@ const ProductDetails = () => {
         setSelectedQuantity(quantities.length > 0 ? quantities[0] : null)
       }
     }
-  }, [product?.id])
+  }, [product?._id, isRice])
 
   // Update quantity selection when type or subtype changes
   useEffect(() => {
@@ -91,7 +107,7 @@ const ProductDetails = () => {
     )
   }
 
-  const category = categories.find((c) => c.id === product.category)
+  const category = categories.find((c) => (c.categoryCode || c.slug) === product.category)
   const isNonVeg = product.category === 'nonVeg'
   const hasTypes = hasTypeVariants(product)
   const variantTypes = getVariantTypes(product)
@@ -122,8 +138,8 @@ const ProductDetails = () => {
     if (!canAddToCart) return
 
     const cartItem = {
-      id: product.id,
-      title: product.title,
+      id: product._id,
+      title: product.title || product.name,
       image: product.image,
       category: product.category,
       selectedType: isRice ? null : selectedType,
@@ -149,12 +165,10 @@ const ProductDetails = () => {
     return subType.charAt(0).toUpperCase() + subType.slice(1)
   }
 
-  const isBanana = product?.id === 'banana'
-
   return (
     <div className="relative min-h-screen">
 
-      {product.id === "banana" && (
+      {(product.productCode || product._id) === 'banana' && (
         <div
           className="absolute inset-0 bg-cover bg-center opacity-15"
           style={{
@@ -180,7 +194,7 @@ const ProductDetails = () => {
           {category && (
             <>
               <Link
-                to={`/shop?category=${category.id}`}
+                to={`/shop?category=${category.categoryCode || category.slug}`}
                 className="hover:text-forest transition-colors"
               >
                 {category.name}
@@ -188,7 +202,7 @@ const ProductDetails = () => {
               <span>/</span>
             </>
           )}
-          <span className="text-text-primary">{product.title}</span>
+          <span className="text-text-primary">{product.title || product.name}</span>
         </motion.nav>
 
         {/* Product Layout */}
@@ -203,7 +217,7 @@ const ProductDetails = () => {
             <div className="aspect-square">
               <img
                 src={product.image}
-                alt={product.title}
+                alt={product.title || product.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=800&fit=crop'
@@ -221,7 +235,7 @@ const ProductDetails = () => {
           >
             {/* Category Badge */}
             {category && (
-              <Link to={`/shop?category=${category.id}`}>
+              <Link to={`/shop?category=${category.categoryCode || category.slug}`}>
                 <span className={`inline-block font-body text-xs font-semibold px-3 py-1 rounded-full mb-4 transition-colors ${
                   isNonVeg
                     ? 'bg-nonveg text-white'
@@ -234,7 +248,7 @@ const ProductDetails = () => {
 
             {/* Product Name */}
             <h1 className="font-heading text-3xl md:text-4xl font-bold text-text-primary mb-4">
-              {product.title}
+              {product.title || product.name}
             </h1>
 
             {/* Price */}

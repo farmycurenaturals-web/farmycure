@@ -7,7 +7,7 @@ import {
   getVariantTypes,
   getQuantities,
   getPrice
-} from '../../data/products'
+} from '../../utils/productPricing'
 
 const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
   const navigate = useNavigate()
@@ -19,7 +19,7 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
 
   useEffect(() => {
     if (product) {
-      const isRice = product.id === 'rice'
+      const isRice = (product.productCode || product._id) === 'rice'
       const hasTypes = hasTypeVariants(product)
       
       if (isRice) {
@@ -61,7 +61,7 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
 
   if (!isOpen || !product) return null
 
-  const isRice = product.id === 'rice'
+  const isRice = (product.productCode || product._id) === 'rice'
   const isNonVeg = product.category === 'nonVeg'
   const hasTypes = hasTypeVariants(product)
   const variantTypes = getVariantTypes(product)
@@ -103,7 +103,7 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
 
     const cartItem = {
       id: product.id,
-      title: product.title,
+      title: product.title || product.name,
       image: product.image,
       category: product.category,
       selectedType: isRice ? null : selectedType,
@@ -158,7 +158,7 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
           <div className="rounded-xl overflow-hidden bg-gray-100">
             <img
               src={product.image}
-              alt={product.title}
+              alt={product.title || product.name}
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=800&fit=crop'
@@ -174,7 +174,7 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
             </span>
 
             <h2 className="font-heading text-2xl md:text-3xl font-bold text-text-primary mb-4">
-              {product.title}
+              {product.title || product.name}
             </h2>
 
             <div className="flex items-baseline gap-2 mb-6">

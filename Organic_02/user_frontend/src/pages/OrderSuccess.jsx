@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Container } from '../components/ui/Container'
 import { Button } from '../components/ui/Button'
 
 const OrderSuccess = () => {
   const location = useLocation()
-  const navigate = useNavigate()
   const [orderId, setOrderId] = useState('')
 
   useEffect(() => {
