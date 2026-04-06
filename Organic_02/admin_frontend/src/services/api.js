@@ -107,6 +107,16 @@ export const api = {
       headers: buildHeaders(),
     }),
 
+  // Categories
+  getCategories: () => withAutoRefresh(`${BASE_URL}/categories`),
+
+  createCategory: (data) =>
+    withAutoRefresh(`${BASE_URL}/categories`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify(data),
+    }),
+
   // Orders
   getOrders: () => withAutoRefresh(`${BASE_URL}/orders?scope=all`, { headers: buildHeaders() }),
 

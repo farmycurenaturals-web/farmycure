@@ -6,7 +6,8 @@ import {
   hasTypeVariants,
   getVariantTypes,
   getQuantities,
-  getPrice
+  getPrice,
+  getVariantImage
 } from '../../utils/productPricing'
 
 const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
@@ -102,9 +103,9 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
     if (!canAddToCart) return
 
     const cartItem = {
-      id: product.id,
+      id: product._id || product.id,
       title: product.title || product.name,
-      image: product.image,
+      image: getVariantImage(product, selectedQuantity),
       category: product.category,
       selectedType: isRice ? null : selectedType,
       selectedSubType: isRice ? selectedSubType : null,
@@ -157,7 +158,7 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="rounded-xl overflow-hidden bg-gray-100">
             <img
-              src={product.image}
+              src={getVariantImage(product, selectedQuantity)}
               alt={product.title || product.name}
               className="w-full h-full object-cover"
               onError={(e) => {

@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
+import axios from 'axios'
+import { BASE_URL } from '../config/api'
 
 const Partners = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    contactNumber: '',
+    contact: '',
     product: '',
     quantity: '',
-    legalTradeName: '',
-    gstVatNumber: '',
+    legalName: '',
+    gst: '',
     message: ''
   })
 
@@ -32,7 +34,7 @@ const Partners = () => {
 
     if (!formData.name.trim()) newErrors.name = 'Name is required'
     if (!formData.email.trim()) newErrors.email = 'Email is required'
-    if (!formData.contactNumber.trim()) newErrors.contactNumber = 'Contact Number is required'
+    if (!formData.contact.trim()) newErrors.contact = 'Contact Number is required'
     if (!formData.product.trim()) newErrors.product = 'Product is required'
     
     if (!formData.quantity) {
@@ -41,8 +43,8 @@ const Partners = () => {
       newErrors.quantity = 'Minimum order quantity is 100 KGs'
     }
     
-    if (!formData.legalTradeName.trim()) newErrors.legalTradeName = 'Legal Trade Name is required'
-    if (!formData.gstVatNumber.trim()) newErrors.gstVatNumber = 'GST / VAT Number is required'
+    if (!formData.legalName.trim()) newErrors.legalName = 'Legal Trade Name is required'
+    if (!formData.gst.trim()) newErrors.gst = 'GST / VAT Number is required'
     if (formData.message.length > 200) newErrors.message = 'Message must be under 200 characters'
 
     setErrors(newErrors)
@@ -55,10 +57,26 @@ const Partners = () => {
     if (!validateForm()) return
 
     setIsSubmitting(true)
-
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    console.log('Trade submission:', formData)
+    try {
+      await axios.post(`${BASE_URL}/api/trade`, {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        contact: formData.contact.trim(),
+        product: formData.product.trim(),
+        quantity: Number(formData.quantity),
+        legalName: formData.legalName.trim(),
+        gst: formData.gst.trim(),
+        message: formData.message.trim()
+      })
+    } catch (err) {
+      setErrors({
+        submit:
+          err?.response?.data?.message ||
+          'Failed to submit trade request. Please try again.'
+      })
+      setIsSubmitting(false)
+      return
+    }
 
     setIsSubmitting(false)
     setIsSubmitted(true)
@@ -68,11 +86,11 @@ const Partners = () => {
       setFormData({
         name: '',
         email: '',
-        contactNumber: '',
+        contact: '',
         product: '',
         quantity: '',
-        legalTradeName: '',
-        gstVatNumber: '',
+        legalName: '',
+        gst: '',
         message: ''
       })
     }, 5000)
@@ -317,6 +335,7 @@ const Partners = () => {
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-md">
+                {errors.submit && <p className="text-red-500 text-sm mb-4">{errors.submit}</p>}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name */}
                   <div>
@@ -357,13 +376,13 @@ const Partners = () => {
                     </label>
                     <input
                       type="tel"
-                      name="contactNumber"
-                      value={formData.contactNumber}
+                      name="contact"
+                      value={formData.contact}
                       onChange={handleChange}
                       required
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
                     />
-                    {errors.contactNumber && <p className="text-red-500 text-sm mt-1">{errors.contactNumber}</p>}
+                    {errors.contact && <p className="text-red-500 text-sm mt-1">{errors.contact}</p>}
                   </div>
 
                   {/* Product */}
@@ -407,13 +426,13 @@ const Partners = () => {
                     </label>
                     <input
                       type="text"
-                      name="legalTradeName"
-                      value={formData.legalTradeName}
+                      name="legalName"
+                      value={formData.legalName}
                       onChange={handleChange}
                       required
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
                     />
-                    {errors.legalTradeName && <p className="text-red-500 text-sm mt-1">{errors.legalTradeName}</p>}
+                    {errors.legalName && <p className="text-red-500 text-sm mt-1">{errors.legalName}</p>}
                   </div>
 
                   {/* GST / VAT Number */}
@@ -423,13 +442,13 @@ const Partners = () => {
                     </label>
                     <input
                       type="text"
-                      name="gstVatNumber"
-                      value={formData.gstVatNumber}
+                      name="gst"
+                      value={formData.gst}
                       onChange={handleChange}
                       required
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
                     />
-                    {errors.gstVatNumber && <p className="text-red-500 text-sm mt-1">{errors.gstVatNumber}</p>}
+                    {errors.gst && <p className="text-red-500 text-sm mt-1">{errors.gst}</p>}
                   </div>
                 </div>
 

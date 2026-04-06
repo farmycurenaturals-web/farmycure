@@ -9,7 +9,8 @@ import {
   hasTypeVariants,
   getVariantTypes,
   getQuantities,
-  getPrice
+  getPrice,
+  getVariantImage
 } from '../utils/productPricing'
 import { fadeIn, fadeInUp } from '../animations/variants'
 import { api } from '../services/api'
@@ -140,7 +141,7 @@ const ProductDetails = () => {
     const cartItem = {
       id: product._id,
       title: product.title || product.name,
-      image: product.image,
+      image: getVariantImage(product, selectedQuantity),
       category: product.category,
       selectedType: isRice ? null : selectedType,
       selectedSubType: isRice ? selectedSubType : null,
@@ -216,7 +217,7 @@ const ProductDetails = () => {
           >
             <div className="aspect-square">
               <img
-                src={product.image}
+                src={getVariantImage(product, selectedQuantity)}
                 alt={product.title || product.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {

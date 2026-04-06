@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Container } from '../components/ui/Container'
-import CategoryFilter from '../components/shop/CategoryFilter'
-import MobileFilters from '../components/shop/MobileFilters'
 import ShopProductCard from '../components/shop/ShopProductCard'
 import ProductModal from '../components/shop/ProductModal'
 import { fadeInUp, staggerContainer } from '../animations/variants'
@@ -90,6 +88,8 @@ const Shop = () => {
       setSearchParams({})
     }
   }
+  const nextSlide = () => setCurrent((prev) => (prev + 1) % slides.length)
+  const prevSlide = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length)
 
   const openProductModal = (product, buyNow = false) => {
     setSelectedProduct(product)
@@ -108,7 +108,7 @@ const Shop = () => {
     : 'All Products'
 
   return (
-    <main className="py-12 md:py-16 bg-background min-h-[60vh]">
+    <main className="py-10 md:py-16 bg-background min-h-[60vh]">
       <Container>
         {/* Page Header */}
         <motion.div
@@ -127,42 +127,54 @@ const Shop = () => {
         </motion.div>
 
         {/* Carousel Slider */}
-        <div className="mt-10 max-w-6xl mx-auto px-4">
-          <div className="relative h-[320px] rounded-2xl overflow-hidden shadow-md">
+        <div className="mt-8 md:mt-10 max-w-6xl mx-auto">
+          <div className="relative h-[230px] sm:h-[280px] md:h-[340px] rounded-2xl overflow-hidden shadow-md">
             <div
               className="flex h-full transition-transform duration-700 ease-in-out"
               style={{ transform: `translateX(-${current * 100}%)` }}
             >
               {slides.map((slide, index) => (
-                <div key={index} className="min-w-full h-full flex items-center bg-[#f5f5f5]">
-                  {/* LEFT TEXT */}
-                  <div className="w-1/2 px-10">
-                    <h2 className="text-3xl font-semibold text-[#1f4d36] mb-3">
+                <div key={index} className="min-w-full h-full relative">
+                  <img
+                    src={slide.image}
+                    alt={slide.title}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80";
+                    }}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/25" />
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="px-5 sm:px-8 md:px-12 max-w-xl text-white">
+                    <h2 className="text-xl sm:text-3xl font-semibold mb-2 md:mb-3">
                       {slide.title}
                     </h2>
-                    <p className="text-gray-600 mb-5">
+                    <p className="text-white/90 text-sm sm:text-base mb-4 md:mb-5">
                       {slide.subtitle}
                     </p>
-                    <button className="bg-[#1f4d36] text-white px-5 py-2 rounded-lg hover:bg-[#173c2b] transition">
+                    <button className="bg-[#1f4d36] text-white px-4 sm:px-5 py-2 rounded-lg hover:bg-[#173c2b] transition">
                       {slide.button}
                     </button>
                   </div>
-
-                  {/* RIGHT IMAGE */}
-                  <div className="w-1/2 h-full">
-                    <img
-                      src={slide.image}
-                      alt={slide.title}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80";
-                      }}
-                      className="w-full h-full object-cover"
-                    />
                   </div>
                 </div>
               ))}
             </div>
+            <button
+              onClick={prevSlide}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/35 text-white hover:bg-black/50 transition"
+              aria-label="Previous banner"
+            >
+              &#8249;
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/35 text-white hover:bg-black/50 transition"
+              aria-label="Next banner"
+            >
+              &#8250;
+            </button>
           </div>
 
           {/* DOTS */}
@@ -178,28 +190,51 @@ const Shop = () => {
           </div>
         </div>
 
-        {/* Mobile Filters */}
-        <MobileFilters
-          activeCategory={effectiveCategory}
-          onCategoryChange={handleCategoryChange}
-          categories={categories}
-        />
-
-        {/* Desktop Layout: Sidebar + Grid */}
-        <div className="flex gap-8">
-          {/* Desktop Sidebar */}
-          <div className="hidden lg:block w-60 flex-shrink-0">
-            <div className="sticky top-24">
-              <CategoryFilter
-                activeCategory={effectiveCategory}
-                onCategoryChange={handleCategoryChange}
-                categories={categories}
-              />
+        {/* Horizontal Categories */}
+        <section className="mt-8 md:mt-10">
+          <div className="overflow-x-auto pb-2">
+            <div className="flex gap-4 md:gap-5 min-w-max px-1">
+              <button
+                onClick={() => handleCategoryChange(null)}
+                className="flex flex-col items-center gap-2 group"
+              >
+                <span
+                  className={`w-14 h-14 md:w-20 md:h-20 rounded-full border-2 flex items-center justify-center bg-white text-xs md:text-sm font-medium transition ${
+                    effectiveCategory === null ? 'border-forest text-forest shadow-sm' : 'border-gray-200 text-gray-500 group-hover:border-forest/60'
+                  }`}
+                >
+                  All
+                </span>
+                <span className={`text-xs md:text-sm ${effectiveCategory === null ? 'text-forest font-medium' : 'text-gray-600'}`}>
+                  All Products
+                </span>
+              </button>
+              {categories.map((cat) => {
+                const id = cat.categoryCode || cat.slug
+                const active = effectiveCategory === id
+                return (
+                  <button key={id} onClick={() => handleCategoryChange(id)} className="flex flex-col items-center gap-2 group">
+                    <span className={`w-14 h-14 md:w-20 md:h-20 rounded-full border-2 overflow-hidden bg-white transition ${active ? 'border-forest shadow-sm' : 'border-gray-200 group-hover:border-forest/60'}`}>
+                      {cat.image ? (
+                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="w-full h-full flex items-center justify-center text-[10px] md:text-xs text-gray-500 px-1">
+                          {cat.name?.slice(0, 8)}
+                        </span>
+                      )}
+                    </span>
+                    <span className={`text-xs md:text-sm text-center max-w-[80px] md:max-w-[96px] truncate ${active ? 'text-forest font-medium' : 'text-gray-600'}`}>
+                      {cat.name}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
+        </section>
 
-          {/* Product Grid */}
-          <div className="flex-1">
+        {/* Product Grid */}
+        <div className="mt-6 md:mt-8">
             {/* Results count */}
             <div className="flex items-center justify-between mb-6">
               <p className="font-body text-sm text-gray-500">
@@ -216,7 +251,7 @@ const Shop = () => {
                 initial="hidden"
                 animate="visible"
                 key={effectiveCategory || 'all'}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
               >
                 {filteredProducts.map((product) => (
                   <motion.div key={product._id} variants={fadeInUp}>
@@ -235,7 +270,6 @@ const Shop = () => {
                 </p>
               </div>
             )}
-          </div>
         </div>
       </Container>
 

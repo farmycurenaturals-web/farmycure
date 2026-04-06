@@ -1,12 +1,15 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, Package } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, Tags, Handshake, MessageSquare } from 'lucide-react';
 
 const Sidebar = () => {
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Orders', path: '/orders', icon: <ShoppingCart size={20} /> },
+    { name: 'Categories', path: '/categories', icon: <Tags size={20} /> },
     { name: 'Products', path: '/products', icon: <Package size={20} /> },
+    { name: 'Trade', path: '/trade', icon: <Handshake size={20} /> },
+    { name: 'Contact', path: '/contact', icon: <MessageSquare size={20} /> },
   ];
 
   return (

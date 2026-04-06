@@ -7,7 +7,7 @@ import { useCart } from '../context/CartContext'
 import { fadeInUp } from '../animations/variants'
 import { api } from '../services/api'
 
-const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_1234567890'
+const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID
 
 const InputField = ({ label, name, type = 'text', value, onChange, error, placeholder }) => (
   <div>
@@ -155,6 +155,12 @@ const Checkout = () => {
 
     setIsProcessing(true)
 
+    if (!RAZORPAY_KEY) {
+      alert('Payment is not configured (missing VITE_RAZORPAY_KEY_ID). Please contact support.')
+      setIsProcessing(false)
+      return
+    }
+
     const scriptLoaded = await loadRazorpayScript()
 
     if (!scriptLoaded) {
@@ -163,13 +169,18 @@ const Checkout = () => {
       return
     }
 
-    const amountInPaise = totalPrice * 100
+    const amountInPaise = Math.round(Number(totalPrice) * 100)
+    if (!Number.isFinite(amountInPaise) || amountInPaise <= 0) {
+      alert('Invalid order amount. Please refresh and try again.')
+      setIsProcessing(false)
+      return
+    }
 
     let razorpayOrder
     try {
       razorpayOrder = await api.payments.createOrder(amountInPaise)
-    } catch (_error) {
-      alert('Unable to create payment order. Please try again.')
+    } catch (error) {
+      alert(error?.message || 'Unable to create payment order. Please try again.')
       setIsProcessing(false)
       return
     }

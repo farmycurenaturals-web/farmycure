@@ -1,20 +1,22 @@
 import { Card } from '../ui/Card'
-import { getStartingPrice } from '../../utils/productPricing'
+import { getQuantities, getStartingPrice, getVariantImage } from '../../utils/productPricing'
 
 const ShopProductCard = ({ product, onOpenModal }) => {
   const startingPrice = getStartingPrice(product)
   const isNonVeg = product.category === 'nonVeg'
+  const firstQty = getQuantities(product)[0] || null
+  const cardImage = getVariantImage(product, firstQty)
 
   return (
-    <Card hoverable className="h-full flex flex-col">
+    <Card hoverable className="h-full flex flex-col rounded-[18px] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
       {/* Image - clickable to open modal */}
       <div 
         onClick={() => onOpenModal(product)}
         className="cursor-pointer"
       >
-        <div className="relative h-48 md:h-56 overflow-hidden bg-gray-100">
+        <div className="relative h-32 sm:h-40 md:h-52 overflow-hidden bg-gray-100 rounded-t-[18px]">
           <img
-            src={product.image}
+            src={cardImage}
             alt={product.title || product.name}
             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
             onError={(e) => {
@@ -33,31 +35,40 @@ const ShopProductCard = ({ product, onOpenModal }) => {
       </div>
 
       {/* Content */}
-      <div className="p-5 flex flex-col flex-1">
+      <div className="p-3 sm:p-4 md:p-5 flex flex-col flex-1">
         <div 
           onClick={() => onOpenModal(product)}
           className="cursor-pointer"
         >
-          <h3 className="font-heading text-lg font-semibold text-text-primary mb-2 hover:text-forest transition-colors">
+          <h3 className="font-heading text-sm sm:text-base md:text-lg font-semibold text-text-primary mb-1.5 hover:text-forest transition-colors">
             {product.title || product.name}
           </h3>
         </div>
-        <p className="font-body text-sm text-gray-600 mb-4 flex-1">
+        <p className="font-body text-xs sm:text-sm text-gray-600 mb-3 md:mb-4 flex-1">
           Available in multiple variants
         </p>
 
         {/* Price */}
         <div className="mb-4">
-          <span className={`font-heading text-xl font-semibold ${isNonVeg ? 'text-nonveg' : 'text-forest'}`}>
-            {startingPrice ? `Starting at ₹${startingPrice}` : 'Price varies'}
-          </span>
+          {startingPrice ? (
+            <div className="mt-2">
+              <p className="text-sm text-gray-500">Starting at</p>
+
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-semibold text-gray-800">₹</span>
+                <span className="text-2xl font-bold text-green-700">{startingPrice}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 mt-2">Price varies</p>
+          )}
         </div>
 
         {/* Add to Cart and Buy Now Buttons */}
-        <div className="flex gap-3 mt-auto">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-auto">
           <button
             onClick={() => onOpenModal(product)}
-            className={`flex-1 py-2 rounded-lg font-medium transition ${
+            className={`w-full flex-1 min-h-[44px] px-2 py-2 rounded-xl text-sm font-medium transition duration-300 ${
               isNonVeg
                 ? "bg-nonveg hover:bg-[#6E1616] text-white"
                 : "bg-[#1f4d36] hover:bg-[#163a2a] text-white"
@@ -68,7 +79,7 @@ const ShopProductCard = ({ product, onOpenModal }) => {
 
           <button
             onClick={() => onOpenModal(product, true)}
-            className={`flex-1 py-2 rounded-lg font-medium border transition ${
+            className={`w-full flex-1 min-h-[44px] px-2 py-2 rounded-xl text-sm font-medium border transition duration-300 ${
               isNonVeg
                 ? "border-nonveg text-nonveg hover:bg-nonveg hover:text-white"
                 : "border-[#1f4d36] text-[#1f4d36] hover:bg-[#1f4d36] hover:text-white"

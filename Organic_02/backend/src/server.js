@@ -41,6 +41,8 @@ const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const partnerRoutes = require('./routes/partnerRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const tradeRoutes = require('./routes/tradeRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -85,6 +87,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/trade', tradeRoutes);
+app.use('/api/admin', adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 

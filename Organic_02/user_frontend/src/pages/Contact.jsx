@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Container } from '../components/ui/Container'
 import { getContactConfig } from '../config/contact'
-import { api } from '../services/api'
+import axios from 'axios'
+import { BASE_URL } from '../config/api'
 
 const linkClass =
   'text-forest font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-forest/40 rounded-sm'
@@ -39,7 +40,7 @@ const Contact = () => {
     setStatus({ type: '', text: '' })
     setSending(true)
     try {
-      await api.contact.submit({
+      await axios.post(`${BASE_URL}/api/contact`, {
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         subject: formData.subject.trim(),
