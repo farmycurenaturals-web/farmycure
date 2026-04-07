@@ -3,6 +3,8 @@ import { Container } from '../components/ui/Container'
 import { getContactConfig } from '../config/contact'
 import axios from 'axios'
 import { BASE_URL } from '../config/api'
+import { useNavigate } from 'react-router-dom'
+import { isUserLoggedIn } from '../utils/auth'
 
 const linkClass =
   'text-forest font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-forest/40 rounded-sm'
@@ -20,6 +22,7 @@ const ContactCard = ({ emoji, title, children }) => (
 )
 
 const Contact = () => {
+  const navigate = useNavigate()
   const contact = useMemo(() => getContactConfig(), [])
 
   const [formData, setFormData] = useState({
@@ -37,6 +40,13 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!isUserLoggedIn()) {
+      setStatus({ type: 'err', text: 'Please login to continue' })
+      setTimeout(() => {
+        navigate('/login', { state: { from: '/contact', message: 'Please login to continue' } })
+      }, 1000)
+      return
+    }
     setStatus({ type: '', text: '' })
     setSending(true)
     try {

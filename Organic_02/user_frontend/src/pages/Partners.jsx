@@ -3,8 +3,11 @@ import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import axios from 'axios'
 import { BASE_URL } from '../config/api'
+import { useNavigate } from 'react-router-dom'
+import { isUserLoggedIn } from '../utils/auth'
 
 const Partners = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -53,6 +56,13 @@ const Partners = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!isUserLoggedIn()) {
+      setErrors({ submit: 'Please login to continue' })
+      setTimeout(() => {
+        navigate('/login', { state: { from: '/partners', message: 'Please login to continue' } })
+      }, 1000)
+      return
+    }
 
     if (!validateForm()) return
 

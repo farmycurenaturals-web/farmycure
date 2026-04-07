@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { Navigate, createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
@@ -17,6 +17,14 @@ import Partners from './pages/Partners'
 import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import { isUserLoggedIn } from './utils/auth'
+
+const ProtectedRoute = ({ children }) => {
+  if (!isUserLoggedIn()) {
+    return <Navigate to="/login" replace state={{ message: 'Please login to continue' }} />
+  }
+  return children
+}
 
 const router = createBrowserRouter([
   {
@@ -29,8 +37,22 @@ const router = createBrowserRouter([
       { path: 'partners', element: <Partners /> },
       { path: 'about', element: <About /> },
       { path: 'contact', element: <Contact /> },
-      { path: 'cart', element: <Cart /> },
-      { path: 'checkout', element: <Checkout /> },
+      {
+        path: 'cart',
+        element: (
+          <ProtectedRoute>
+            <Cart />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: 'checkout',
+        element: (
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        )
+      },
       { path: 'order-success', element: <OrderSuccess /> },
       { path: 'login', element: <Login /> },
       { path: 'forgot-password', element: <ForgotPassword /> },

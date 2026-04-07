@@ -1,12 +1,22 @@
 import { Card } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { useCart } from '../../context/CartContext'
+import { useNavigate } from 'react-router-dom'
+import { isUserLoggedIn } from '../../utils/auth'
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart()
+  const navigate = useNavigate()
 
   const handleAddToCart = (e) => {
     e.preventDefault()
+    if (!isUserLoggedIn()) {
+      alert('Please login to continue')
+      setTimeout(() => {
+        navigate('/login', { state: { from: '/shop', message: 'Please login to continue' } })
+      }, 1000)
+      return
+    }
     addToCart(product, 1)
   }
 

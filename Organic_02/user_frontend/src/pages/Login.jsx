@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Container } from '../components/ui/Container'
 import { Button } from '../components/ui/Button'
 import { useAuth } from '../context/AuthContext'
@@ -7,6 +7,7 @@ import { api } from '../services/api'
 
 const Login = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
   const [isRegister, setIsRegister] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' })
@@ -50,7 +51,7 @@ const Login = () => {
       }
 
       await login(form.email.trim().toLowerCase(), form.password)
-      navigate('/')
+      navigate(location.state?.from || '/', { replace: true })
     } catch (err) {
       setError(err.message || 'Authentication failed')
     } finally {
@@ -69,6 +70,9 @@ const Login = () => {
             User portal login and registration.
           </p>
 
+          {location.state?.message && (
+            <p className="mb-4 text-sm text-amber-700">{location.state.message}</p>
+          )}
           {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
           {success && <p className="mb-4 text-sm text-green-700">{success}</p>}
 

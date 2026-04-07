@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Container } from '../components/ui/Container'
 import { Button } from '../components/ui/Button'
@@ -14,9 +14,11 @@ import {
 } from '../utils/productPricing'
 import { fadeIn, fadeInUp } from '../animations/variants'
 import { api } from '../services/api'
+import { isUserLoggedIn } from '../utils/auth'
 
 const ProductDetails = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { addToCart } = useCart()
   const [selectedType, setSelectedType] = useState(null)
   const [selectedSubType, setSelectedSubType] = useState(null)
@@ -137,6 +139,13 @@ const ProductDetails = () => {
 
   const handleAddToCart = () => {
     if (!canAddToCart) return
+    if (!isUserLoggedIn()) {
+      alert('Please login to continue')
+      setTimeout(() => {
+        navigate('/login', { state: { from: `/product/${id}`, message: 'Please login to continue' } })
+      }, 1000)
+      return
+    }
 
     const cartItem = {
       id: product._id,

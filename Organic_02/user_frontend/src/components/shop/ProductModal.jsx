@@ -9,6 +9,7 @@ import {
   getPrice,
   getVariantImage
 } from '../../utils/productPricing'
+import { isUserLoggedIn } from '../../utils/auth'
 
 const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
   const navigate = useNavigate()
@@ -101,6 +102,14 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
 
   const handleAddToCart = () => {
     if (!canAddToCart) return
+    if (!isUserLoggedIn()) {
+      alert('Please login to continue')
+      setTimeout(() => {
+        onClose()
+        navigate('/login', { state: { from: '/shop', message: 'Please login to continue' } })
+      }, 1000)
+      return
+    }
 
     const cartItem = {
       id: product._id || product.id,
