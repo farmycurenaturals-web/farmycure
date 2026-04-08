@@ -1,17 +1,63 @@
 const Product = require('../models/Product');
 
+const buildAssetUrl = (req, filename) => {
+  const base = `${req.protocol}://${req.get('host')}`;
+  return `${base}/uploads/${filename}`;
+};
+
+const safeJsonParse = (value, fallback) => {
+  if (typeof value !== 'string') return value ?? fallback;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
+const normalizeVariants = (rawVariants = []) => {
+  if (!Array.isArray(rawVariants)) return [];
+  return rawVariants
+    .map((variant) => {
+      const options = Array.isArray(variant?.options)
+        ? variant.options
+            .map((opt) => ({
+              quantity: String(opt?.quantity || '').trim(),
+              price: Number(opt?.price),
+              stock: Number(opt?.stock || 0)
+            }))
+            .filter((opt) => opt.quantity && Number.isFinite(opt.price))
+        : [];
+      return {
+        name: String(variant?.name || '').trim(),
+        image: String(variant?.image || '').trim(),
+        imageFileKey: String(variant?.imageFileKey || '').trim(),
+        options
+      };
+    })
+    .filter((variant) => variant.name && variant.options.length > 0);
+};
+
 const normalizeProductPayload = (body) => {
-  const title = body.title || body.name;
+  const title = String(body.title || body.name || '').trim();
+  const variantsInput = safeJsonParse(body.variants, []);
+  const variants = normalizeVariants(variantsInput);
+  const minPrice = variants.length
+    ? Math.min(...variants.flatMap((variant) => variant.options.map((opt) => opt.price)))
+    : Number(body.price || 0);
+  const totalStock = variants.length
+    ? variants.flatMap((variant) => variant.options).reduce((sum, opt) => sum + (Number(opt.stock) || 0), 0)
+    : Number(body.stock || 0);
+
   return {
     productCode: body.productCode,
     title,
     name: body.name || title,
     category: body.category,
     description: body.description,
-    image: body.image,
-    variants: body.variants || {},
-    price: Number(body.price || 0),
-    stock: Number(body.stock || 0),
+    image: String(body.image || '').trim(),
+    variants,
+    price: Number.isFinite(minPrice) ? minPrice : 0,
+    stock: Number.isFinite(totalStock) ? totalStock : 0,
     isActive: body.isActive !== false
   };
 };
@@ -43,6 +89,14 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     const payload = normalizeProductPayload(req.body);
+    const files = Array.isArray(req.files) ? req.files : [];
+    const fileUrlMap = new Map(files.map((file) => [file.fieldname, buildAssetUrl(req, file.filename)]));
+    payload.variants = (payload.variants || []).map((variant) => ({
+      name: variant.name,
+      image: variant.imageFileKey && fileUrlMap.has(variant.imageFileKey) ? fileUrlMap.get(variant.imageFileKey) : variant.image,
+      options: variant.options
+    }));
+    payload.image = payload.image || payload.variants.find((variant) => variant.image)?.image || '';
     const product = await Product.create(payload);
     return res.status(201).json(product);
   } catch (error) {
@@ -53,6 +107,14 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const payload = normalizeProductPayload(req.body);
+    const files = Array.isArray(req.files) ? req.files : [];
+    const fileUrlMap = new Map(files.map((file) => [file.fieldname, buildAssetUrl(req, file.filename)]));
+    payload.variants = (payload.variants || []).map((variant) => ({
+      name: variant.name,
+      image: variant.imageFileKey && fileUrlMap.has(variant.imageFileKey) ? fileUrlMap.get(variant.imageFileKey) : variant.image,
+      options: variant.options
+    }));
+    payload.image = payload.image || payload.variants.find((variant) => variant.image)?.image || '';
     const product = await Product.findByIdAndUpdate(req.params.id, payload, { new: true });
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });

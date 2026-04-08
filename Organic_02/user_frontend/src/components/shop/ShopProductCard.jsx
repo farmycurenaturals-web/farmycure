@@ -1,11 +1,12 @@
 import { Card } from '../ui/Card'
-import { getQuantities, getStartingPrice, getVariantImage } from '../../utils/productPricing'
+import { getQuantities, getStartingPrice, getVariantImage, getVariantTypes } from '../../utils/productPricing'
 
 const ShopProductCard = ({ product, onOpenModal }) => {
   const startingPrice = getStartingPrice(product)
   const isNonVeg = product.category === 'nonVeg'
-  const firstQty = getQuantities(product)[0] || null
-  const cardImage = getVariantImage(product, firstQty)
+  const firstType = getVariantTypes(product)[0] || null
+  const firstQty = getQuantities(product, firstType)[0] || null
+  const cardImage = getVariantImage(product, firstType, firstQty)
 
   return (
     <Card hoverable className="h-full flex flex-col rounded-[18px] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">

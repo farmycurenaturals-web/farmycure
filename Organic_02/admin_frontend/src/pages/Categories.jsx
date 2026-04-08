@@ -24,8 +24,10 @@ const Categories = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    image: '',
+    imageUrl: '',
   });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
 
   const fetchData = async () => {
     try {
@@ -74,18 +76,27 @@ const Categories = () => {
 
     const slug = slugify(name);
     if (!slug) return setFormError('Invalid category name');
+    if (!selectedFile && !formData.imageUrl.trim()) {
+      return setFormError('Please upload an image or provide an image URL');
+    }
 
     try {
       setCreateLoading(true);
-      await api.createCategory({
-        name,
-        slug,
-        categoryCode: slug,
-        description: formData.description.trim(),
-        image: formData.image.trim(),
-      });
+      const payload = new FormData();
+      payload.append('name', name);
+      payload.append('slug', slug);
+      payload.append('categoryCode', slug);
+      payload.append('description', formData.description.trim());
+      if (selectedFile) {
+        payload.append('image', selectedFile);
+      } else {
+        payload.append('imageUrl', formData.imageUrl.trim());
+      }
+      await api.createCategory(payload);
       setShowCreateModal(false);
-      setFormData({ name: '', description: '', image: '' });
+      setFormData({ name: '', description: '', imageUrl: '' });
+      setSelectedFile(null);
+      setPreviewUrl('');
       await fetchData();
       setSuccess('Category created successfully');
       setTimeout(() => setSuccess(''), 3000);
@@ -157,6 +168,22 @@ const Categories = () => {
     },
   ];
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setFormError('Only image files are allowed');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setFormError('Image must be 2MB or smaller');
+      return;
+    }
+    setFormError('');
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
   return (
     <div className="space-y-6">
       {error && (
@@ -195,6 +222,8 @@ const Categories = () => {
             onClick={() => {
               setShowCreateModal(true);
               setFormError('');
+              setSelectedFile(null);
+              setPreviewUrl('');
             }}
             className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
           >
@@ -223,7 +252,11 @@ const Categories = () => {
               <h2 className="text-lg font-bold text-gray-900">Create Category</h2>
               <button
                 type="button"
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setSelectedFile(null);
+                  setPreviewUrl('');
+                }}
                 className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
               >
                 <X size={20} />
@@ -257,20 +290,45 @@ const Categories = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image (optional)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-colors"
+                />
+                <p className="text-xs text-gray-500 mt-1">Max size: 2MB. Supported: jpg, png, webp, gif.</p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Image URL (optional)</label>
                 <input
                   type="text"
-                  value={formData.image}
-                  onChange={(e) => setFormData((p) => ({ ...p, image: e.target.value }))}
+                  value={formData.imageUrl}
+                  onChange={(e) => setFormData((p) => ({ ...p, imageUrl: e.target.value }))}
                   placeholder="https://example.com/category.jpg"
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-colors"
                 />
               </div>
+              {(previewUrl || formData.imageUrl.trim()) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Preview</label>
+                  <img
+                    src={previewUrl || formData.imageUrl.trim()}
+                    alt="Category preview"
+                    className="w-20 h-20 rounded-md object-cover border border-gray-100"
+                    onError={() => setFormError('Invalid image preview URL')}
+                  />
+                </div>
+              )}
 
               <div className="pt-1 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setSelectedFile(null);
+                    setPreviewUrl('');
+                  }}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Cancel

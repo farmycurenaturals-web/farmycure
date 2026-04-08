@@ -4,11 +4,17 @@ import { Table } from '../components/Table';
 import { api } from '../services/api';
 import { formatINR } from '../utils/currency';
 
-const blankVariant = () => ({
+const blankOption = () => ({
   quantity: '',
   price: '',
   stock: '',
+});
+
+const blankVariant = () => ({
+  name: '',
   image: '',
+  imageFile: null,
+  options: [blankOption()],
 });
 
 const blankForm = () => ({
@@ -24,14 +30,6 @@ const slugify = (value) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)+/g, '');
-
-const toDataUrl = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -85,24 +83,31 @@ const Products = () => {
     setFormError('');
     if (product) {
       const productVariants = Array.isArray(product.variants)
-        ? product.variants
-        : Object.entries(product.variants || {}).map(([quantity, price]) => ({
-            quantity,
-            price: Number(price) || 0,
-            stock: '',
-            image: product.image || '',
-          }));
+        ? product.variants.map((variant) => ({
+            name: variant?.name || 'default',
+            image: variant?.image || '',
+            imageFile: null,
+            options: Array.isArray(variant?.options) && variant.options.length
+              ? variant.options.map((opt) => ({
+                  quantity: opt?.quantity || '',
+                  price: opt?.price ?? '',
+                  stock: opt?.stock ?? '',
+                }))
+              : variant?.quantity
+                ? [{
+                    quantity: variant.quantity || '',
+                    price: variant.price ?? '',
+                    stock: variant.stock ?? '',
+                  }]
+              : [blankOption()],
+          }))
+        : [];
       setCurrentProduct(product);
       setFormData({
         name: product.name || product.title || '',
         category: product.category || '',
         description: product.description || '',
-        variants: (productVariants.length ? productVariants : [blankVariant()]).map((v) => ({
-          quantity: v.quantity || '',
-          price: v.price ?? '',
-          stock: v.stock ?? '',
-          image: v.image || product.image || '',
-        })),
+        variants: productVariants.length ? productVariants : [blankVariant()],
       });
     } else {
       setCurrentProduct(null);
@@ -124,6 +129,16 @@ const Products = () => {
     });
   };
 
+  const updateVariantOption = (variantIndex, optionIndex, key, value) => {
+    setFormData((prev) => {
+      const nextVariants = [...prev.variants];
+      const nextOptions = [...(nextVariants[variantIndex]?.options || [])];
+      nextOptions[optionIndex] = { ...nextOptions[optionIndex], [key]: value };
+      nextVariants[variantIndex] = { ...nextVariants[variantIndex], options: nextOptions };
+      return { ...prev, variants: nextVariants };
+    });
+  };
+
   const addVariant = () => {
     setFormData((prev) => ({ ...prev, variants: [...prev.variants, blankVariant()] }));
   };
@@ -135,14 +150,46 @@ const Products = () => {
     });
   };
 
-  const handleVariantImageUpload = async (index, file) => {
+  const addVariantOption = (variantIndex) => {
+    setFormData((prev) => {
+      const nextVariants = [...prev.variants];
+      nextVariants[variantIndex] = {
+        ...nextVariants[variantIndex],
+        options: [...(nextVariants[variantIndex]?.options || []), blankOption()],
+      };
+      return { ...prev, variants: nextVariants };
+    });
+  };
+
+  const removeVariantOption = (variantIndex, optionIndex) => {
+    setFormData((prev) => {
+      const nextVariants = [...prev.variants];
+      const options = [...(nextVariants[variantIndex]?.options || [])];
+      if (options.length <= 1) return prev;
+      nextVariants[variantIndex] = {
+        ...nextVariants[variantIndex],
+        options: options.filter((_, idx) => idx !== optionIndex),
+      };
+      return { ...prev, variants: nextVariants };
+    });
+  };
+
+  const isLikelyDirectImageUrl = (value) =>
+    /^https?:\/\/.+\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(String(value || '').trim());
+
+  const handleVariantImageUpload = (index, file) => {
     if (!file) return;
-    try {
-      const preview = await toDataUrl(file);
-      updateVariant(index, 'image', preview);
-    } catch {
-      setFormError('Failed to read variant image file');
+    if (!file.type.startsWith('image/')) {
+      setFormError('Only image files are allowed');
+      return;
     }
+    if (file.size > 2 * 1024 * 1024) {
+      setFormError('Image must be 2MB or smaller');
+      return;
+    }
+    const preview = URL.createObjectURL(file);
+    updateVariant(index, 'imageFile', file);
+    updateVariant(index, 'image', preview);
   };
 
   const handleSubmit = async (e) => {
@@ -154,42 +201,61 @@ const Products = () => {
     if (!formData.variants?.length) return setFormError('At least one variant is required');
 
     const normalizedVariants = formData.variants
-      .map((variant) => ({
-        quantity: String(variant.quantity || '').trim(),
-        price: Number(variant.price),
-        stock: variant.stock === '' ? undefined : Number(variant.stock),
+      .map((variant, variantIndex) => ({
+        name: String(variant.name || '').trim(),
         image: String(variant.image || '').trim(),
+        imageFile: variant.imageFile || null,
+        imageField: `variantImage-${variantIndex}`,
+        options: Array.isArray(variant.options)
+          ? variant.options
+              .map((option) => ({
+                quantity: String(option.quantity || '').trim(),
+                price: Number(option.price),
+                stock: option.stock === '' ? 0 : Number(option.stock),
+              }))
+              .filter((option) => option.quantity && Number.isFinite(option.price))
+          : [],
       }))
-      .filter((variant) => variant.quantity || variant.image || !Number.isNaN(variant.price));
+      .filter((variant) => variant.name || variant.options.length || variant.image || variant.imageFile);
 
     if (!normalizedVariants.length) {
-      return setFormError('Add at least one valid variant with quantity and price');
+      return setFormError('Add at least one variant with name, image and quantity options');
     }
     for (const variant of normalizedVariants) {
-      if (!variant.quantity) return setFormError('Each variant needs a quantity (e.g. 500g, 1kg)');
-      if (Number.isNaN(variant.price)) return setFormError('Each variant needs a valid INR price');
+      if (!variant.name) return setFormError('Each variant needs a name (e.g. fresh, flakes, powder)');
+      if (!variant.imageFile && !variant.image) return setFormError('Each variant needs an image URL or uploaded image');
+      if (!variant.imageFile && !isLikelyDirectImageUrl(variant.image)) {
+        return setFormError('Use a direct image URL ending with .jpg, .jpeg, .png, .webp, or .gif');
+      }
+      if (!variant.options.length) return setFormError('Each variant needs at least one quantity option');
     }
 
     try {
-      const minPrice = Math.min(...normalizedVariants.map((v) => v.price));
-      const totalStock = normalizedVariants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
-      const firstImage = normalizedVariants.find((v) => v.image)?.image || '';
-
-      const payload = {
-        name: formData.name.trim(),
-        title: formData.name.trim(),
-        category: formData.category,
-        description: formData.description?.trim() || '',
-        variants: normalizedVariants.map((v) => ({
-          quantity: v.quantity,
-          price: v.price,
-          stock: Number(v.stock) || 0,
-          image: v.image || '',
-        })),
-        image: firstImage,
-        price: minPrice,
-        stock: totalStock,
-      };
+      const payload = new FormData();
+      payload.append('name', formData.name.trim());
+      payload.append('title', formData.name.trim());
+      payload.append('category', formData.category);
+      payload.append('description', formData.description?.trim() || '');
+      payload.append(
+        'variants',
+        JSON.stringify(
+          normalizedVariants.map((variant) => ({
+            name: variant.name,
+            image: variant.imageFile ? '' : variant.image,
+            imageFileKey: variant.imageFile ? variant.imageField : '',
+            options: variant.options.map((option) => ({
+              quantity: option.quantity,
+              price: option.price,
+              stock: Number(option.stock) || 0,
+            })),
+          }))
+        )
+      );
+      normalizedVariants.forEach((variant) => {
+        if (variant.imageFile) {
+          payload.append(variant.imageField, variant.imageFile);
+        }
+      });
 
       if (currentProduct) {
         await api.updateProduct(currentProduct._id || currentProduct.id, payload);
@@ -268,7 +334,10 @@ const Products = () => {
 
   const resolveMinPrice = (row) => {
     if (Array.isArray(row.variants) && row.variants.length) {
-      const prices = row.variants.map((v) => Number(v?.price)).filter((n) => Number.isFinite(n));
+      const prices = row.variants
+        .flatMap((variant) => (Array.isArray(variant?.options) ? variant.options : []))
+        .map((opt) => Number(opt?.price))
+        .filter((n) => Number.isFinite(n));
       if (prices.length) return Math.min(...prices);
     }
     return Number(row.price || 0);
@@ -276,7 +345,9 @@ const Products = () => {
 
   const resolveStock = (row) => {
     if (Array.isArray(row.variants) && row.variants.length) {
-      return row.variants.reduce((sum, v) => sum + (Number(v?.stock) || 0), 0);
+      return row.variants
+        .flatMap((variant) => (Array.isArray(variant?.options) ? variant.options : []))
+        .reduce((sum, opt) => sum + (Number(opt?.stock) || 0), 0);
     }
     return Number(row.stock || 0);
   };
@@ -514,45 +585,20 @@ const Products = () => {
                   <div className="space-y-3">
                     {formData.variants.map((variant, idx) => (
                       <div key={`variant-${idx}`} className="border border-gray-200 rounded-lg p-3 bg-gray-50/40">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Quantity *</label>
-                            <input
-                              type="text"
-                              placeholder="e.g. 500g, 1kg"
-                              value={variant.quantity}
-                              onChange={(e) => updateVariant(idx, 'quantity', e.target.value)}
-                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-green-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Price (INR) *</label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              placeholder="0"
-                              value={variant.price}
-                              onChange={(e) => updateVariant(idx, 'price', e.target.value)}
-                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-green-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Stock (optional)</label>
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="0"
-                              value={variant.stock}
-                              onChange={(e) => updateVariant(idx, 'stock', e.target.value)}
-                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-green-500"
-                            />
-                          </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Variant Name *</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. fresh, flakes, powder"
+                            value={variant.name}
+                            onChange={(e) => updateVariant(idx, 'name', e.target.value)}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-green-500"
+                          />
                         </div>
 
                         <div className="mt-3 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
                           <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Image URL (optional)</label>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Image URL (or upload below)</label>
                             <input
                               type="text"
                               value={variant.image}
@@ -582,6 +628,70 @@ const Products = () => {
                             />
                           </div>
                         )}
+
+                        <div className="mt-4 border-t border-gray-200 pt-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <p className="text-xs font-semibold text-gray-700">Quantity Options</p>
+                            <button
+                              type="button"
+                              onClick={() => addVariantOption(idx)}
+                              className="inline-flex items-center gap-1 text-xs font-medium text-green-700 hover:text-green-800"
+                            >
+                              <Plus size={14} />
+                              Add Quantity Option
+                            </button>
+                          </div>
+
+                          <div className="space-y-2">
+                            {variant.options.map((option, optionIdx) => (
+                              <div key={`variant-${idx}-option-${optionIdx}`} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+                                <div>
+                                  <label className="block text-[11px] font-medium text-gray-600 mb-1">Quantity *</label>
+                                  <input
+                                    type="text"
+                                    placeholder="e.g. 100g, 500g"
+                                    value={option.quantity}
+                                    onChange={(e) => updateVariantOption(idx, optionIdx, 'quantity', e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-green-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-medium text-gray-600 mb-1">Price (INR) *</label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder="0"
+                                    value={option.price}
+                                    onChange={(e) => updateVariantOption(idx, optionIdx, 'price', e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-green-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-medium text-gray-600 mb-1">Stock</label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    placeholder="0"
+                                    value={option.stock}
+                                    onChange={(e) => updateVariantOption(idx, optionIdx, 'stock', e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-green-500"
+                                  />
+                                </div>
+                                <div className="md:text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeVariantOption(idx, optionIdx)}
+                                    disabled={variant.options.length === 1}
+                                    className="text-xs text-red-600 hover:text-red-700 disabled:text-gray-300"
+                                  >
+                                    Remove Option
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
 
                         <div className="mt-2 flex justify-end">
                           <button

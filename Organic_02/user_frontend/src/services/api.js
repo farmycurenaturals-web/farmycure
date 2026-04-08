@@ -19,13 +19,16 @@ const getSessionId = () => {
   return sessionId;
 };
 
-const buildHeaders = (customHeaders = {}) => {
+const buildHeaders = (customHeaders = {}, body) => {
   const token = getAuthToken();
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
     'x-session-id': getSessionId(),
     ...customHeaders
   };
+  if (!isFormData && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
@@ -43,7 +46,7 @@ const handleResponse = async (response) => {
 const request = async (path, options = {}) => {
   let response = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers: buildHeaders(options.headers)
+    headers: buildHeaders(options.headers, options.body)
   });
   if (response.status === 401 && !String(path).includes('/auth/')) {
     const refreshToken = getRefreshToken();
@@ -59,7 +62,7 @@ const request = async (path, options = {}) => {
           setAccessToken(refreshData.accessToken);
           response = await fetch(`${BASE_URL}${path}`, {
             ...options,
-            headers: buildHeaders(options.headers)
+            headers: buildHeaders(options.headers, options.body)
           });
         }
       }
@@ -104,4 +107,7 @@ export const api = {
   contact: {
     submit: (payload) => request('/contact', { method: 'POST', body: JSON.stringify(payload) }),
   },
+  user: {
+    updateProfileImage: (formData) => request('/user/profile-image', { method: 'PUT', body: formData })
+  }
 };

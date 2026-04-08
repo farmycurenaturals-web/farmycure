@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
 const { seedDataIfEmpty } = require('./config/seedData');
 const { seedAdminUsers } = require('./config/seedAdminUsers');
@@ -43,11 +44,13 @@ const partnerRoutes = require('./routes/partnerRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const tradeRoutes = require('./routes/tradeRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
 app.get('/api', (req, res) => {
   res.json({ message: 'FarmyCure backend running' });
@@ -89,6 +92,18 @@ app.use('/api/partners', partnerRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/trade', tradeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/user', userRoutes);
+
+app.use((err, _req, res, next) => {
+  if (!err) return next();
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ message: 'Image size must be 2MB or smaller' });
+  }
+  if (String(err.message || '').toLowerCase().includes('only image files are allowed')) {
+    return res.status(400).json({ message: 'Only image files are allowed' });
+  }
+  return res.status(500).json({ message: err.message || 'Server error' });
+});
 
 const PORT = process.env.PORT || 5000;
 

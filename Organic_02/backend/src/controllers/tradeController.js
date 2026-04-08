@@ -3,9 +3,9 @@ const { sendTradeRequestMail } = require('../utils/mailer');
 
 const submitTradeRequest = async (req, res) => {
   try {
-    const { name, email, contact, product, quantity, legalName, gst, message } = req.body;
+    const { name, email, contact, product, quantity, timezone, preferredTime, contactMethod, legalName, gst, message } = req.body;
 
-    if (!name || !email || !contact || !product || quantity == null || !legalName || !gst) {
+    if (!name || !email || !contact || !product || quantity == null || !timezone || !preferredTime || !contactMethod || !legalName || !gst) {
       return res.status(400).json({ message: 'All required fields must be provided' });
     }
 
@@ -19,12 +19,20 @@ const submitTradeRequest = async (req, res) => {
       return res.status(400).json({ message: 'Message must be under 200 characters' });
     }
 
+    const allowedMethods = new Set(['Call', 'WhatsApp', 'Email']);
+    if (!allowedMethods.has(String(contactMethod).trim())) {
+      return res.status(400).json({ message: 'Preferred contact method must be Call, WhatsApp, or Email' });
+    }
+
     const trade = await Trade.create({
       name: String(name).trim(),
       email: String(email).trim().toLowerCase(),
       contact: String(contact).trim(),
       product: String(product).trim(),
       quantity: parsedQuantity,
+      timezone: String(timezone).trim(),
+      preferredTime: String(preferredTime).trim(),
+      contactMethod: String(contactMethod).trim(),
       legalName: String(legalName).trim(),
       gst: String(gst).trim(),
       message: cleanedMessage,

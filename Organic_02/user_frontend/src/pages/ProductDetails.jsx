@@ -123,7 +123,8 @@ const ProductDetails = () => {
   const currentPrice = isRice
     ? getPrice(product, selectedSubType, selectedQuantity)
     : getPrice(product, selectedType, selectedQuantity)
-  const canAddToCart = currentPrice !== null && selectedQuantity !== null
+  const activeType = isRice ? selectedSubType : selectedType
+  const canAddToCart = currentPrice !== null && selectedQuantity !== null && (!hasTypes || Boolean(activeType))
 
   // Build a readable variant string for the cart
   const buildVariantLabel = () => {
@@ -149,11 +150,13 @@ const ProductDetails = () => {
 
     const cartItem = {
       id: product._id,
+      productId: product._id,
       title: product.title || product.name,
-      image: getVariantImage(product, selectedQuantity),
+      image: getVariantImage(product, activeType, selectedQuantity),
       category: product.category,
       selectedType: isRice ? null : selectedType,
       selectedSubType: isRice ? selectedSubType : null,
+      variant: activeType || 'default',
       selectedQuantity,
       selectedVariant: buildVariantLabel(),
       price: currentPrice
@@ -226,7 +229,7 @@ const ProductDetails = () => {
           >
             <div className="aspect-square">
               <img
-                src={getVariantImage(product, selectedQuantity)}
+                src={getVariantImage(product, activeType, selectedQuantity)}
                 alt={product.title || product.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {

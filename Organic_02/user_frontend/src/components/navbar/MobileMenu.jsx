@@ -6,7 +6,8 @@ import { slideInRight } from '../../animations/variants'
 import { useAuth } from '../../context/AuthContext'
 
 const MobileMenu = ({ isOpen, onClose }) => {
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, user, logout } = useAuth()
+  const avatarSrc = user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=E5E7EB&color=111827`
   return (
     <AnimatePresence>
       {isOpen && (
@@ -62,15 +63,24 @@ const MobileMenu = ({ isOpen, onClose }) => {
                 <NavLinks onClick={onClose} />
                 <div className="mt-4">
                   {isAuthenticated ? (
-                    <button
-                      onClick={() => {
-                        logout()
-                        onClose()
-                      }}
-                      className="text-sm font-medium text-forest"
-                    >
-                      Logout
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <Link to="/profile" onClick={onClose} className="inline-flex items-center">
+                        <img
+                          src={avatarSrc}
+                          alt={`${user?.name || 'User'} avatar`}
+                          className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                        />
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout()
+                          onClose()
+                        }}
+                        className="text-sm font-medium text-forest"
+                      >
+                        Logout
+                      </button>
+                    </div>
                   ) : (
                     <Link to="/login" onClick={onClose} className="text-sm font-medium text-forest">
                       Login

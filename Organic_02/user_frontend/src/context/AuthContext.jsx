@@ -51,7 +51,17 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: Boolean(user),
     login,
     register,
-    logout
+    logout,
+    setUser,
+    updateProfileImage: async (file) => {
+      const formData = new FormData()
+      formData.append('image', file)
+      const data = await api.user.updateProfileImage(formData)
+      const merged = { ...user, ...data.user }
+      localStorage.setItem(USER_KEY, JSON.stringify(merged))
+      setUser(merged)
+      return merged
+    }
   }), [user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

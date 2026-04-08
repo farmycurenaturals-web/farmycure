@@ -7,11 +7,14 @@ const API_ORIGIN =
   (import.meta.env.DEV ? '' : 'http://127.0.0.1:5000');
 const BASE_URL = API_ORIGIN ? `${API_ORIGIN}/api` : '/api';
 
-const buildHeaders = () => {
+const buildHeaders = (body) => {
   const token = localStorage.getItem('farmycure_token');
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   return token
-    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-    : { 'Content-Type': 'application/json' };
+    ? { ...(isFormData ? {} : { 'Content-Type': 'application/json' }), Authorization: `Bearer ${token}` }
+    : isFormData
+      ? {}
+      : { 'Content-Type': 'application/json' };
 };
 
 const handleResponse = async (response) => {
@@ -72,7 +75,7 @@ const withAutoRefresh = async (input, init = {}) => {
   const refreshData = await refreshRes.json();
   if (!refreshData.accessToken) return handleResponse(response);
   localStorage.setItem('farmycure_token', refreshData.accessToken);
-  response = await fetch(input, { ...init, headers: buildHeaders() });
+  response = await fetch(input, { ...init, headers: buildHeaders(init.body) });
   return handleResponse(response);
 };
 
@@ -90,15 +93,15 @@ export const api = {
   createProduct: (data) =>
     withAutoRefresh(`${BASE_URL}/products`, {
       method: 'POST',
-      headers: buildHeaders(),
-      body: JSON.stringify(data),
+      headers: buildHeaders(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
     }),
 
   updateProduct: (id, data) =>
     withAutoRefresh(`${BASE_URL}/products/${id}`, {
       method: 'PUT',
-      headers: buildHeaders(),
-      body: JSON.stringify(data),
+      headers: buildHeaders(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
     }),
 
   deleteProduct: (id) =>
@@ -113,8 +116,8 @@ export const api = {
   createCategory: (data) =>
     withAutoRefresh(`${BASE_URL}/categories`, {
       method: 'POST',
-      headers: buildHeaders(),
-      body: JSON.stringify(data),
+      headers: buildHeaders(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
     }),
 
   // Orders
@@ -123,7 +126,7 @@ export const api = {
   updateOrder: (id, data) =>
     withAutoRefresh(`${BASE_URL}/orders/${id}`, {
       method: 'PUT',
-      headers: buildHeaders(),
+      headers: buildHeaders(data),
       body: JSON.stringify(data),
     }),
 };

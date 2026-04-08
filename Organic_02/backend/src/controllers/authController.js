@@ -24,6 +24,7 @@ const authResponse = (user, accessToken, refreshToken) => ({
   name: user.name,
   email: user.email,
   role: user.role,
+  profileImage: user.profileImage || '',
   token: accessToken,
   accessToken,
   refreshToken

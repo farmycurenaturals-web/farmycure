@@ -36,6 +36,17 @@ const AdminTrade = () => {
     { title: 'Contact', dataIndex: 'contact' },
     { title: 'Product', dataIndex: 'product' },
     { title: 'Quantity', dataIndex: 'quantity' },
+    { title: 'Timezone', dataIndex: 'timezone', render: (row) => row.timezone || '-' },
+    {
+      title: 'Preferred Time',
+      dataIndex: 'preferredTime',
+      render: (row) => row.preferredTime || '-',
+    },
+    {
+      title: 'Contact Method',
+      dataIndex: 'contactMethod',
+      render: (row) => row.contactMethod || '-',
+    },
     { title: 'Legal Name', dataIndex: 'legalName' },
     { title: 'GST', dataIndex: 'gst' },
     {

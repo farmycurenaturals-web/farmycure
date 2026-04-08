@@ -6,6 +6,15 @@ import { BASE_URL } from '../config/api'
 import { useNavigate } from 'react-router-dom'
 import { isUserLoggedIn } from '../utils/auth'
 
+const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+const timezoneOptions = [
+  { value: 'Asia/Kolkata', label: 'India (IST)' },
+  { value: 'America/New_York', label: 'USA (New York)' },
+  { value: 'Europe/London', label: 'UK (London)' },
+  { value: 'Asia/Dubai', label: 'UAE (Dubai)' },
+  { value: 'Australia/Sydney', label: 'Australia (Sydney)' }
+]
+
 const Partners = () => {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
@@ -14,6 +23,9 @@ const Partners = () => {
     contact: '',
     product: '',
     quantity: '',
+    timezone: timezoneOptions.some((tz) => tz.value === detectedTimezone) ? detectedTimezone : 'Asia/Kolkata',
+    preferredTime: '',
+    contactMethod: '',
     legalName: '',
     gst: '',
     message: ''
@@ -45,6 +57,8 @@ const Partners = () => {
     } else if (Number(formData.quantity) < 100) {
       newErrors.quantity = 'Minimum order quantity is 100 KGs'
     }
+    if (!formData.preferredTime) newErrors.preferredTime = 'Preferred contact time is required'
+    if (!formData.contactMethod) newErrors.contactMethod = 'Preferred contact method is required'
     
     if (!formData.legalName.trim()) newErrors.legalName = 'Legal Trade Name is required'
     if (!formData.gst.trim()) newErrors.gst = 'GST / VAT Number is required'
@@ -74,6 +88,9 @@ const Partners = () => {
         contact: formData.contact.trim(),
         product: formData.product.trim(),
         quantity: Number(formData.quantity),
+        timezone: formData.timezone,
+        preferredTime: formData.preferredTime,
+        contactMethod: formData.contactMethod,
         legalName: formData.legalName.trim(),
         gst: formData.gst.trim(),
         message: formData.message.trim()
@@ -99,6 +116,9 @@ const Partners = () => {
         contact: '',
         product: '',
         quantity: '',
+        timezone: timezoneOptions.some((tz) => tz.value === detectedTimezone) ? detectedTimezone : 'Asia/Kolkata',
+        preferredTime: '',
+        contactMethod: '',
         legalName: '',
         gst: '',
         message: ''
@@ -340,7 +360,7 @@ const Partners = () => {
                   Thank You!
                 </h3>
                 <p className="text-gray-600">
-                  Thank you for your trade request. Our team will contact you within 24–48 hours.
+                  Your request has been submitted. Our team will contact you within your preferred time or the closest available business hours.
                 </p>
               </motion.div>
             ) : (
@@ -427,6 +447,64 @@ const Partners = () => {
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
                     />
                     {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
+                  </div>
+
+                  {/* Timezone */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Timezone <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="timezone"
+                      value={formData.timezone}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    >
+                      {timezoneOptions.map((tz) => (
+                        <option key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Preferred Contact Time */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Preferred Contact Time <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="preferredTime"
+                      value={formData.preferredTime}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    >
+                      <option value="">Select preferred time</option>
+                      <option value="Morning (9 AM – 12 PM)">Morning (9 AM – 12 PM)</option>
+                      <option value="Afternoon (12 PM – 4 PM)">Afternoon (12 PM – 4 PM)</option>
+                      <option value="Evening (4 PM – 8 PM)">Evening (4 PM – 8 PM)</option>
+                      <option value="Night (8 PM – 11 PM)">Night (8 PM – 11 PM)</option>
+                    </select>
+                    {errors.preferredTime && <p className="text-red-500 text-sm mt-1">{errors.preferredTime}</p>}
+                  </div>
+
+                  {/* Preferred Contact Method */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Preferred Contact Method <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="contactMethod"
+                      value={formData.contactMethod}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1f4d36]"
+                    >
+                      <option value="">Select contact method</option>
+                      <option value="Call">Call</option>
+                      <option value="WhatsApp">WhatsApp</option>
+                      <option value="Email">Email</option>
+                    </select>
+                    {errors.contactMethod && <p className="text-red-500 text-sm mt-1">{errors.contactMethod}</p>}
                   </div>
 
                   {/* Legal Trade Name */}

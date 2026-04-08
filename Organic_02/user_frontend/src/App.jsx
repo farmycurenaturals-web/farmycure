@@ -17,6 +17,7 @@ import Partners from './pages/Partners'
 import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import Profile from './pages/Profile'
 import { isUserLoggedIn } from './utils/auth'
 
 const ProtectedRoute = ({ children }) => {
@@ -57,6 +58,14 @@ const router = createBrowserRouter([
       { path: 'login', element: <Login /> },
       { path: 'forgot-password', element: <ForgotPassword /> },
       { path: 'reset-password', element: <ResetPassword /> },
+      {
+        path: 'profile',
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        )
+      },
     ],
   },
 ])
