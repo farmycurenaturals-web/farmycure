@@ -10,6 +10,7 @@ import {
   getVariantImage
 } from '../../utils/productPricing'
 import { isUserLoggedIn } from '../../utils/auth'
+import Price from '../Price'
 
 const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
   const navigate = useNavigate()
@@ -79,6 +80,7 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
     : getPrice(product, selectedType, selectedQuantity)
   
   const activeType = isRice ? selectedSubType : selectedType
+  const modalImage = getVariantImage(product, activeType, selectedQuantity)
   const canAddToCart = currentPrice !== null && selectedQuantity !== null && (!hasTypes || Boolean(activeType))
 
   const formatTypeName = (type) => {
@@ -116,7 +118,7 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
       id: product._id || product.id,
       productId: product._id || product.id,
       title: product.title || product.name,
-      image: getVariantImage(product, activeType, selectedQuantity),
+      image: modalImage,
       category: product.category,
       selectedType: isRice ? null : selectedType,
       selectedSubType: isRice ? selectedSubType : null,
@@ -168,15 +170,18 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="rounded-xl overflow-hidden bg-gray-100">
-            <img
-              src={getVariantImage(product, activeType, selectedQuantity)}
-              alt={product.title || product.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=800&fit=crop'
-              }}
-            />
+          <div className="rounded-xl overflow-hidden bg-gray-100 min-h-[200px] md:min-h-0">
+            {modalImage ? (
+              <img
+                src={modalImage}
+                alt={product.title || product.name}
+                className="w-full h-full object-cover min-h-[200px] md:min-h-[280px]"
+              />
+            ) : (
+              <div className="w-full min-h-[200px] md:min-h-[280px] flex items-center justify-center text-gray-400 text-sm px-4 text-center">
+                No Image Available
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col">
@@ -191,9 +196,11 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
             </h2>
 
             <div className="flex items-baseline gap-2 mb-6">
-              <span className={`font-heading text-3xl font-bold ${isNonVeg ? 'text-nonveg' : 'text-forest'}`}>
-                {currentPrice ? `₹${currentPrice}` : 'Select options'}
-              </span>
+              {currentPrice != null ? (
+                <Price amount={currentPrice} size="lg" />
+              ) : (
+                <span className="font-heading text-3xl font-bold text-text-primary">Select options</span>
+              )}
             </div>
 
             {hasTypes && variantTypes.length > 0 && (
@@ -246,11 +253,13 @@ const ProductModal = ({ product, isOpen, onClose, isBuyNow = false }) => {
                         }`}
                       >
                         <span>{qty}</span>
-                        {price && (
-                          <span className={`text-xs ${
-                            selectedQuantity === qty ? 'text-white/80' : 'text-gray-500'
-                          }`}>
-                            ₹{price}
+                        {price != null && (
+                          <span className="mt-0.5">
+                            <Price
+                              amount={price}
+                              size="xs"
+                              variant={selectedQuantity === qty ? 'onDark' : 'muted'}
+                            />
                           </span>
                         )}
                       </button>

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table } from '../components/Table';
 import { apiAdmin } from '../services/apiAdmin';
 
 const AdminContact = () => {
+  const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,7 +21,7 @@ const AdminContact = () => {
           localStorage.removeItem('farmycure_token');
           localStorage.removeItem('farmycure_refresh_token');
           localStorage.removeItem('farmycure_user');
-          window.location.href = '/login';
+          navigate('/login', { replace: true });
           return;
         }
         setError(msg);

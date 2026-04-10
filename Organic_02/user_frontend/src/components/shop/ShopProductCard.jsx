@@ -1,4 +1,5 @@
 import { Card } from '../ui/Card'
+import Price from '../Price'
 import { getQuantities, getStartingPrice, getVariantImage, getVariantTypes } from '../../utils/productPricing'
 
 const ShopProductCard = ({ product, onOpenModal }) => {
@@ -16,14 +17,17 @@ const ShopProductCard = ({ product, onOpenModal }) => {
         className="cursor-pointer"
       >
         <div className="relative h-32 sm:h-40 md:h-52 overflow-hidden bg-gray-100 rounded-t-[18px]">
-          <img
-            src={cardImage}
-            alt={product.title || product.name}
-            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-            onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop'
-            }}
-          />
+          {cardImage ? (
+            <img
+              src={cardImage}
+              alt={product.title || product.name}
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm px-2 text-center bg-gray-100">
+              No Image Available
+            </div>
+          )}
           {/* Category Badge */}
           <span className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
             isNonVeg 
@@ -55,10 +59,7 @@ const ShopProductCard = ({ product, onOpenModal }) => {
             <div className="mt-2">
               <p className="text-sm text-gray-500">Starting at</p>
 
-              <div className="flex items-baseline gap-1">
-                <span className="text-lg font-semibold text-gray-800">₹</span>
-                <span className="text-2xl font-bold text-green-700">{startingPrice}</span>
-              </div>
+              <Price amount={startingPrice} size="lg" />
             </div>
           ) : (
             <p className="text-sm text-gray-500 mt-2">Price varies</p>

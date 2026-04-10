@@ -61,6 +61,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem(USER_KEY, JSON.stringify(merged))
       setUser(merged)
       return merged
+    },
+    updateProfile: async (payload) => {
+      const data = await api.user.updateProfile(payload)
+      const merged = { ...user, ...data.user }
+      localStorage.setItem(USER_KEY, JSON.stringify(merged))
+      setUser(merged)
+      return merged
     }
   }), [user])
 

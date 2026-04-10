@@ -25,6 +25,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  phone: {
+    type: String,
+    default: '',
+    trim: true
+  },
   refreshTokens: [
     {
       token: {

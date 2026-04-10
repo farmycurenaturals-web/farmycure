@@ -5,15 +5,36 @@ import { api } from '../services/api';
 import { AlertCircle } from 'lucide-react';
 import { formatINR } from '../utils/currency';
 
+const ORDER_STATUSES = ['Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+
+/** Map legacy DB values to the current enum for the dropdown. */
+const normalizeOrderStatus = (raw) => {
+  if (raw === undefined || raw === null || raw === '') return 'Placed';
+  const s = String(raw).trim();
+  if (ORDER_STATUSES.includes(s)) return s;
+  const lower = s.toLowerCase();
+  const legacy = {
+    pending: 'Placed',
+    processing: 'Processing',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    completed: 'Delivered',
+    cancelled: 'Cancelled',
+    canceled: 'Cancelled'
+  };
+  return legacy[lower] || 'Placed';
+};
+
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (opts = {}) => {
+    const silent = Boolean(opts.silent);
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await api.getOrders();
       setOrders(Array.isArray(data) ? data : (data.orders || []));
       setError('');
@@ -21,7 +42,7 @@ const Orders = () => {
       setError('Failed to fetch orders. Check backend connection.');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -31,13 +52,13 @@ const Orders = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      await api.updateOrder(orderId, { status: newStatus });
-      setSuccess(`Order #${(orderId).substring(0,8)} status updated to ${newStatus}`);
-      fetchOrders();
+      await api.updateOrderStatus(orderId, newStatus);
+      setSuccess(`Order #${String(orderId).substring(0, 8)} status updated to ${newStatus}`);
+      await fetchOrders({ silent: true });
       setTimeout(() => setSuccess(''), 3000);
-    } catch {
-      setError('Failed to update order status');
-      setTimeout(() => setError(''), 3000);
+    } catch (err) {
+      setError(err?.message || 'Failed to update order status');
+      setTimeout(() => setError(''), 4000);
     }
   };
 
@@ -72,24 +93,29 @@ const Orders = () => {
       ),
     },
     { 
-      title: 'Status Action', 
+      title: 'Status', 
       dataIndex: 'status',
-      render: (row) => (
-        <div className="flex items-center gap-3">
-          {getStatusBadge(row.status || 'Pending')}
-          
-          <select 
-            value={row.status?.toLowerCase() || 'pending'}
-            onChange={(e) => handleStatusChange(row._id || row.id, e.target.value)}
-            className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-gray-50 text-gray-700 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 cursor-pointer"
-          >
-            <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-      )
+      render: (row) => {
+        const id = row._id || row.id;
+        const value = normalizeOrderStatus(row.status);
+        return (
+          <div className="flex items-center gap-3 flex-wrap">
+            {getStatusBadge(row.status)}
+            <select
+              value={value}
+              onChange={(e) => handleStatusChange(id, e.target.value)}
+              className="text-xs border border-gray-200 rounded-md px-2 py-1.5 bg-white text-gray-700 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 cursor-pointer min-w-[9.5rem]"
+              aria-label="Update order status"
+            >
+              {ORDER_STATUSES.map((st) => (
+                <option key={st} value={st}>
+                  {st}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      }
     }
   ];
 

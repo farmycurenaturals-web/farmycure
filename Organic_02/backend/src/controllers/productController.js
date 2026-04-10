@@ -37,6 +37,11 @@ const normalizeVariants = (rawVariants = []) => {
     .filter((variant) => variant.name && variant.options.length > 0);
 };
 
+const parseFeatured = (body) =>
+  body.isFeatured === true ||
+  body.isFeatured === 'true' ||
+  String(body.isFeatured || '').toLowerCase() === 'true';
+
 const normalizeProductPayload = (body) => {
   const title = String(body.title || body.name || '').trim();
   const variantsInput = safeJsonParse(body.variants, []);
@@ -58,7 +63,8 @@ const normalizeProductPayload = (body) => {
     variants,
     price: Number.isFinite(minPrice) ? minPrice : 0,
     stock: Number.isFinite(totalStock) ? totalStock : 0,
-    isActive: body.isActive !== false
+    isActive: body.isActive !== false,
+    isFeatured: parseFeatured(body)
   };
 };
 
@@ -68,6 +74,18 @@ const getProducts = async (req, res) => {
     const filter = { isActive: true };
     if (category) filter.category = category;
     const products = await Product.find(filter).sort({ createdAt: -1 });
+    return res.json(products);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const getFeaturedProducts = async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 8, 1), 24);
+    const products = await Product.find({ isFeatured: true, isActive: true })
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .limit(limit);
     return res.json(products);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -96,7 +114,6 @@ const createProduct = async (req, res) => {
       image: variant.imageFileKey && fileUrlMap.has(variant.imageFileKey) ? fileUrlMap.get(variant.imageFileKey) : variant.image,
       options: variant.options
     }));
-    payload.image = payload.image || payload.variants.find((variant) => variant.image)?.image || '';
     const product = await Product.create(payload);
     return res.status(201).json(product);
   } catch (error) {
@@ -114,7 +131,6 @@ const updateProduct = async (req, res) => {
       image: variant.imageFileKey && fileUrlMap.has(variant.imageFileKey) ? fileUrlMap.get(variant.imageFileKey) : variant.image,
       options: variant.options
     }));
-    payload.image = payload.image || payload.variants.find((variant) => variant.image)?.image || '';
     const product = await Product.findByIdAndUpdate(req.params.id, payload, { new: true });
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
@@ -137,4 +153,11 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-module.exports = { getProducts, getProductById, createProduct, updateProduct, deleteProduct };
+module.exports = {
+  getProducts,
+  getFeaturedProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct
+};

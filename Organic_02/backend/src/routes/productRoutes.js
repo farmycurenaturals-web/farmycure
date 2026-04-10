@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   getProducts,
+  getFeaturedProducts,
   getProductById,
   createProduct,
   updateProduct,
@@ -10,6 +11,7 @@ const {
 const { requireAuth, allowRoles } = require('../middleware/authMiddleware');
 const { uploadImage } = require('../middleware/upload');
 
+router.get('/featured', getFeaturedProducts);
 router.get('/', getProducts);
 router.get('/:id', getProductById);
 router.post('/', requireAuth, allowRoles('admin', 'owner'), uploadImage.any(), createProduct);

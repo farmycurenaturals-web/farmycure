@@ -53,6 +53,7 @@ const sendTradeRequestMail = async (trade) => {
       `quantity: ${trade.quantity}`,
       `timezone: ${trade.timezone || ''}`,
       `preferredTime: ${trade.preferredTime || ''}`,
+      `convertedTimeIST: ${trade.convertedTimeIST?.start || ''} - ${trade.convertedTimeIST?.end || ''}${trade.convertedTimeIST?.outsideBusinessHours ? ' (outside typical India business hours)' : ''}`,
       `contactMethod: ${trade.contactMethod || ''}`,
       `legalName: ${trade.legalName}`,
       `gst: ${trade.gst}`,

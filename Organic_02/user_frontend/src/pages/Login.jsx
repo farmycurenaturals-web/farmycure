@@ -51,7 +51,10 @@ const Login = () => {
       }
 
       await login(form.email.trim().toLowerCase(), form.password)
-      navigate(location.state?.from || '/', { replace: true })
+      const raw = location.state?.from
+      const to =
+        typeof raw === 'string' && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/'
+      navigate(to, { replace: true })
     } catch (err) {
       setError(err.message || 'Authentication failed')
     } finally {

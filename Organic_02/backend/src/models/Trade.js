@@ -12,6 +12,11 @@ const tradeSchema = new mongoose.Schema({
   legalName: { type: String, required: true },
   gst: { type: String, required: true },
   message: { type: String, maxlength: 200, default: '' },
+  convertedTimeIST: {
+    start: { type: String, default: '' },
+    end: { type: String, default: '' },
+    outsideBusinessHours: { type: Boolean, default: false },
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

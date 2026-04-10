@@ -129,4 +129,11 @@ export const api = {
       headers: buildHeaders(data),
       body: JSON.stringify(data),
     }),
+
+  updateOrderStatus: (id, status) =>
+    withAutoRefresh(`${BASE_URL}/orders/${id}/status`, {
+      method: 'PUT',
+      headers: buildHeaders({}),
+      body: JSON.stringify({ status }),
+    }),
 };

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table } from '../components/Table';
 import { apiAdmin } from '../services/apiAdmin';
 
 const AdminTrade = () => {
+  const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,7 +21,7 @@ const AdminTrade = () => {
           localStorage.removeItem('farmycure_token');
           localStorage.removeItem('farmycure_refresh_token');
           localStorage.removeItem('farmycure_user');
-          window.location.href = '/login';
+          navigate('/login', { replace: true });
           return;
         }
         setError(msg);
@@ -36,11 +38,40 @@ const AdminTrade = () => {
     { title: 'Contact', dataIndex: 'contact' },
     { title: 'Product', dataIndex: 'product' },
     { title: 'Quantity', dataIndex: 'quantity' },
-    { title: 'Timezone', dataIndex: 'timezone', render: (row) => row.timezone || '-' },
     {
-      title: 'Preferred Time',
+      title: 'Preferred Time (User)',
       dataIndex: 'preferredTime',
-      render: (row) => row.preferredTime || '-',
+      render: (row) => (
+        <div>
+          <span>{row.preferredTime || '-'}</span>
+          <div className="text-xs text-gray-500">({row.timezone || '—'})</div>
+        </div>
+      ),
+    },
+    {
+      title: 'Converted Time (IST)',
+      dataIndex: 'convertedTimeIST',
+      render: (row) => {
+        const { start, end, outsideBusinessHours } = row.convertedTimeIST || {};
+        const hasRange = start && end;
+        return (
+          <div>
+            {hasRange ? (
+              <>
+                <span>
+                  {start} – {end}
+                </span>
+                <div className="text-xs text-gray-500">(India Time)</div>
+                {outsideBusinessHours && (
+                  <div className="text-red-500 text-xs mt-0.5">Outside business hours</div>
+                )}
+              </>
+            ) : (
+              <span className="text-gray-400">—</span>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: 'Contact Method',

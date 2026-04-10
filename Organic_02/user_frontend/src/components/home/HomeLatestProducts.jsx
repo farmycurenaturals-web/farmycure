@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Container } from '../ui/Container'
 import { Button } from '../ui/Button'
+import Price from '../Price'
 import { api } from '../../services/api'
 import { fadeInUp, staggerContainer } from '../../animations/variants'
-import { getStartingPrice } from '../../utils/productPricing'
+import { getStartingPrice, getVariantImage, getVariantTypes, getQuantities } from '../../utils/productPricing'
 
 /** Live products from the same API the admin uses — new items appear here automatically. */
 const HomeLatestProducts = () => {
@@ -52,6 +53,9 @@ const HomeLatestProducts = () => {
             const id = product._id || product.id
             const price = getStartingPrice(product)
             const label = product.title || product.name
+            const firstType = getVariantTypes(product)[0] || null
+            const firstQty = getQuantities(product, firstType)[0] || null
+            const cardImage = getVariantImage(product, firstType, firstQty)
             return (
               <motion.div key={id || label} variants={fadeInUp}>
                 <Link
@@ -59,15 +63,17 @@ const HomeLatestProducts = () => {
                   className="group block bg-white rounded-card shadow-md hover:shadow-lg transition-shadow overflow-hidden h-full border border-gray-100"
                 >
                   <div className="relative h-44 overflow-hidden bg-gray-100">
-                    <img
-                      src={product.image}
-                      alt={label}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      onError={(e) => {
-                        e.target.src =
-                          'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop'
-                      }}
-                    />
+                    {cardImage ? (
+                      <img
+                        src={cardImage}
+                        alt={label}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="h-40 flex items-center justify-center text-gray-400 text-sm px-2 text-center">
+                        No Image Available
+                      </div>
+                    )}
                   </div>
                   <div className="p-4">
                     <h3 className="font-heading text-lg font-semibold text-text-primary line-clamp-2 group-hover:text-forest transition-colors">
@@ -76,9 +82,13 @@ const HomeLatestProducts = () => {
                     <p className="font-body text-sm text-gray-500 mt-1 line-clamp-2">
                       {product.description || product.category}
                     </p>
-                    <p className="font-heading text-lg font-bold text-forest mt-3">
-                      {price != null ? `₹${price}` : 'See options'}
-                    </p>
+                    <div className="mt-3">
+                      {price != null ? (
+                        <Price amount={price} size="lg" />
+                      ) : (
+                        <p className="font-heading text-lg font-bold text-gray-500">See options</p>
+                      )}
+                    </div>
                   </div>
                 </Link>
               </motion.div>

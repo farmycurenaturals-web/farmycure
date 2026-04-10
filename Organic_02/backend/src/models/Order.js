@@ -50,7 +50,8 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    default: 'processing'
+    enum: ['Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+    default: 'Placed'
   },
   shippingAddress: {
     type: mongoose.Schema.Types.Mixed,

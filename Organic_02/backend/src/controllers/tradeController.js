@@ -1,5 +1,6 @@
 const Trade = require('../models/Trade');
 const { sendTradeRequestMail } = require('../utils/mailer');
+const { buildConvertedTimeIST } = require('../utils/tradeTime');
 
 const submitTradeRequest = async (req, res) => {
   try {
@@ -24,18 +25,30 @@ const submitTradeRequest = async (req, res) => {
       return res.status(400).json({ message: 'Preferred contact method must be Call, WhatsApp, or Email' });
     }
 
+    const tz = String(timezone).trim();
+    const pref = String(preferredTime).trim();
+    const istWindow = buildConvertedTimeIST(tz, pref);
+    const convertedTimeIST = istWindow
+      ? {
+          start: istWindow.start,
+          end: istWindow.end,
+          outsideBusinessHours: istWindow.outsideBusinessHours,
+        }
+      : { start: '', end: '', outsideBusinessHours: false };
+
     const trade = await Trade.create({
       name: String(name).trim(),
       email: String(email).trim().toLowerCase(),
       contact: String(contact).trim(),
       product: String(product).trim(),
       quantity: parsedQuantity,
-      timezone: String(timezone).trim(),
-      preferredTime: String(preferredTime).trim(),
+      timezone: tz,
+      preferredTime: pref,
       contactMethod: String(contactMethod).trim(),
       legalName: String(legalName).trim(),
       gst: String(gst).trim(),
       message: cleanedMessage,
+      convertedTimeIST,
     });
 
     const emailSent = await sendTradeRequestMail(trade).catch(() => false);

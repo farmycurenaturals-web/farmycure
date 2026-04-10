@@ -1,3 +1,5 @@
+import Price from '../Price'
+
 const DeliveryInfo = () => {
   const infoItems = [
     {
@@ -7,7 +9,12 @@ const DeliveryInfo = () => {
         </svg>
       ),
       title: 'Free Shipping',
-      description: 'Free delivery on orders above ₹499',
+      description: (
+        <span className="inline-flex flex-wrap items-baseline gap-x-1">
+          <span>Free delivery on orders above</span>
+          <Price amount={499} size="sm" />
+        </span>
+      )
     },
     {
       icon: (
@@ -16,7 +23,7 @@ const DeliveryInfo = () => {
         </svg>
       ),
       title: 'Delivery Time',
-      description: 'Dispatched within 2-3 business days',
+      description: 'Dispatched within 2-3 business days'
     },
     {
       icon: (
@@ -25,8 +32,8 @@ const DeliveryInfo = () => {
         </svg>
       ),
       title: 'Easy Returns',
-      description: '7-day hassle-free return policy',
-    },
+      description: '7-day hassle-free return policy'
+    }
   ]
 
   return (

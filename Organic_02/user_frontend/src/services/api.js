@@ -74,6 +74,7 @@ const request = async (path, options = {}) => {
 export const api = {
   products: {
     list: (category) => request(`/products${category ? `?category=${encodeURIComponent(category)}` : ''}`),
+    featured: (limit = 8) => request(`/products/featured?limit=${encodeURIComponent(limit)}`),
     getById: (id) => request(`/products/${id}`)
   },
   categories: {
@@ -94,7 +95,8 @@ export const api = {
       request('/payments/verify-signature', { method: 'POST', body: JSON.stringify(payload) })
   },
   orders: {
-    create: (payload) => request('/orders', { method: 'POST', body: JSON.stringify(payload) })
+    create: (payload) => request('/orders', { method: 'POST', body: JSON.stringify(payload) }),
+    getById: (id) => request(`/orders/${id}`)
   },
   auth: {
     register: (payload) => request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
@@ -108,6 +110,14 @@ export const api = {
     submit: (payload) => request('/contact', { method: 'POST', body: JSON.stringify(payload) }),
   },
   user: {
-    updateProfileImage: (formData) => request('/user/profile-image', { method: 'PUT', body: formData })
+    updateProfileImage: (formData) => request('/user/profile-image', { method: 'PUT', body: formData }),
+    getOrders: () => request('/user/orders'),
+    getAddresses: () => request('/user/addresses'),
+    createAddress: (payload) => request('/user/address', { method: 'POST', body: JSON.stringify(payload) }),
+    updateAddress: (id, payload) =>
+      request(`/user/address/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    deleteAddress: (id) => request(`/user/address/${id}`, { method: 'DELETE' }),
+    updateProfile: (payload) => request('/user/profile', { method: 'PUT', body: JSON.stringify(payload) }),
+    changePassword: (payload) => request('/user/password', { method: 'PUT', body: JSON.stringify(payload) })
   }
 };

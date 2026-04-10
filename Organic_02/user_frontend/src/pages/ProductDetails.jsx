@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Container } from '../components/ui/Container'
 import { Button } from '../components/ui/Button'
+import Price from '../components/Price'
 import DeliveryInfo from '../components/product/DeliveryInfo'
 import { useCart } from '../context/CartContext'
 import {
@@ -124,6 +125,7 @@ const ProductDetails = () => {
     ? getPrice(product, selectedSubType, selectedQuantity)
     : getPrice(product, selectedType, selectedQuantity)
   const activeType = isRice ? selectedSubType : selectedType
+  const detailImage = getVariantImage(product, activeType, selectedQuantity)
   const canAddToCart = currentPrice !== null && selectedQuantity !== null && (!hasTypes || Boolean(activeType))
 
   // Build a readable variant string for the cart
@@ -152,7 +154,7 @@ const ProductDetails = () => {
       id: product._id,
       productId: product._id,
       title: product.title || product.name,
-      image: getVariantImage(product, activeType, selectedQuantity),
+      image: detailImage,
       category: product.category,
       selectedType: isRice ? null : selectedType,
       selectedSubType: isRice ? selectedSubType : null,
@@ -227,15 +229,18 @@ const ProductDetails = () => {
             animate="visible"
             className="bg-white rounded-card overflow-hidden shadow-md"
           >
-            <div className="aspect-square">
-              <img
-                src={getVariantImage(product, activeType, selectedQuantity)}
-                alt={product.title || product.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=800&fit=crop'
-                }}
-              />
+            <div className="aspect-square bg-gray-100">
+              {detailImage ? (
+                <img
+                  src={detailImage}
+                  alt={product.title || product.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full min-h-[280px] flex items-center justify-center text-gray-400 text-sm px-4 text-center">
+                  No Image Available
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -265,13 +270,15 @@ const ProductDetails = () => {
             </h1>
 
             {/* Price */}
-            <div className="flex items-baseline gap-2 mb-6">
-              <span className={`font-heading text-3xl font-bold ${isNonVeg ? 'text-nonveg' : 'text-forest'}`}>
-                {currentPrice ? `₹${currentPrice}` : 'Select options'}
-              </span>
-              <span className="font-body text-sm text-gray-400">
-                inclusive of all taxes
-              </span>
+            <div className="flex flex-wrap items-baseline gap-2 mb-6">
+              {currentPrice != null ? (
+                <>
+                  <Price amount={currentPrice} size="lg" />
+                  <span className="font-body text-sm text-gray-400">inclusive of all taxes</span>
+                </>
+              ) : (
+                <span className="font-heading text-3xl font-bold text-text-primary">Select options</span>
+              )}
             </div>
 
             {/* Type Selector (if has type variants) */}
@@ -326,11 +333,13 @@ const ProductDetails = () => {
                         }`}
                       >
                         <span className="font-medium">{qty}</span>
-                        {price && (
-                          <span className={`text-xs mt-1 ${
-                            selectedQuantity === qty ? 'text-white/80' : 'text-gray-500'
-                          }`}>
-                            ₹{price}
+                        {price != null && (
+                          <span className="mt-1">
+                            <Price
+                              amount={price}
+                              size="xs"
+                              variant={selectedQuantity === qty ? 'onDark' : 'muted'}
+                            />
                           </span>
                         )}
                       </button>

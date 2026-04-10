@@ -40,7 +40,8 @@ const productSchema = new mongoose.Schema({
     type: String
   },
   image: {
-    type: String
+    type: String,
+    default: ''
   },
   variants: {
     type: [variantSchema],
@@ -57,6 +58,10 @@ const productSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  isFeatured: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

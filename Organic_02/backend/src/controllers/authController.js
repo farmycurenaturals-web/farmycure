@@ -25,6 +25,7 @@ const authResponse = (user, accessToken, refreshToken) => ({
   email: user.email,
   role: user.role,
   profileImage: user.profileImage || '',
+  phone: user.phone || '',
   token: accessToken,
   accessToken,
   refreshToken
@@ -32,7 +33,7 @@ const authResponse = (user, accessToken, refreshToken) => ({
 
 const registerUser = async (req, res) => {
   try {
-    const { name, password, role } = req.body;
+    const { name, password, role, phone } = req.body;
     const email = String(req.body?.email || '')
       .trim()
       .toLowerCase();
@@ -60,7 +61,8 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: requestedRole
+      role: requestedRole,
+      ...(phone !== undefined && phone !== null ? { phone: String(phone).trim() } : {})
     });
 
     const accessToken = buildAccessToken(user);

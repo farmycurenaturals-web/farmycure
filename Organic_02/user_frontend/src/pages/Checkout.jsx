@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Container } from '../components/ui/Container'
 import { Button } from '../components/ui/Button'
+import Price from '../components/Price'
 import { useCart } from '../context/CartContext'
 import { fadeInUp } from '../animations/variants'
 import { api } from '../services/api'
@@ -33,8 +34,7 @@ const InputField = ({ label, name, type = 'text', value, onChange, error, placeh
 
 const OrderSummaryItem = ({ item }) => {
   const { product, quantity } = item
-  const isNonVeg = product.category === 'nonVeg'
-  
+
   const formatTypeName = (type) => {
     if (!type) return ''
     return type.charAt(0).toUpperCase() + type.slice(1)
@@ -42,11 +42,17 @@ const OrderSummaryItem = ({ item }) => {
 
   return (
     <div className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
-      <img
-        src={product.image}
-        alt={product.title}
-        className="w-12 h-12 object-cover rounded-lg"
-      />
+      {product.image ? (
+        <img
+          src={product.image}
+          alt={product.title}
+          className="w-12 h-12 object-cover rounded-lg shrink-0"
+        />
+      ) : (
+        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-[10px] text-center px-0.5 shrink-0 leading-tight">
+          No image
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         <p className="font-body text-sm font-medium text-text-primary truncate">
           {product.title}
@@ -57,9 +63,9 @@ const OrderSummaryItem = ({ item }) => {
           x {quantity}
         </p>
       </div>
-      <p className={`font-body text-sm font-medium ${isNonVeg ? 'text-nonveg' : 'text-text-primary'}`}>
-        ₹{product.price * quantity}
-      </p>
+      <div className="shrink-0">
+        <Price amount={product.price * quantity} size="md" />
+      </div>
     </div>
   )
 }
@@ -389,22 +395,22 @@ const Checkout = () => {
 
               {/* Totals */}
               <div className="space-y-3 pt-4 border-t border-gray-100">
-                <div className="flex justify-between font-body text-gray-600">
+                <div className="flex justify-between items-center font-body text-gray-600">
                   <span>Total Items</span>
                   <span>{totalItems}</span>
                 </div>
-                <div className="flex justify-between font-body text-gray-600">
+                <div className="flex justify-between items-center font-body text-gray-600">
                   <span>Subtotal</span>
-                  <span>₹{totalPrice}</span>
+                  <Price amount={totalPrice} size="md" />
                 </div>
-                <div className="flex justify-between font-body text-gray-600">
+                <div className="flex justify-between items-center font-body text-gray-600">
                   <span>Shipping</span>
-                  <span className="text-forest">₹0</span>
+                  <Price amount={0} size="md" />
                 </div>
                 <div className="border-t border-gray-100 pt-3">
-                  <div className="flex justify-between font-heading text-xl font-bold text-text-primary">
-                    <span>Grand Total</span>
-                    <span>₹{totalPrice}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-heading text-xl font-semibold text-text-primary">Grand Total</span>
+                    <Price amount={totalPrice} size="lg" />
                   </div>
                 </div>
               </div>

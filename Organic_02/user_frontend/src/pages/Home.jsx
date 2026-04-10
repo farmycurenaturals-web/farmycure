@@ -9,8 +9,8 @@ const Home = () => {
     <main>
       <HeroSection />
       <CategorySection />
-      <HomeLatestProducts />
       <FeaturedProducts />
+      <HomeLatestProducts />
       <TrustSection />
     </main>
   )

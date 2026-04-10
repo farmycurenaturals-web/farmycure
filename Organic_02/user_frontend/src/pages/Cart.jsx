@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Container } from '../components/ui/Container'
 import { Button } from '../components/ui/Button'
+import Price from '../components/Price'
 import { useCart } from '../context/CartContext'
 import { fadeInUp, staggerContainer } from '../animations/variants'
 
@@ -17,11 +18,17 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, itemKey }) => {
     >
       {/* Product Image */}
       <Link to={`/product/${product.id}`} className="flex-shrink-0">
-        <img
-          src={product.image}
-          alt={product.title}
-          className="w-24 h-24 object-cover rounded-lg"
-        />
+        {product.image ? (
+          <img
+            src={product.image}
+            alt={product.title}
+            className="w-24 h-24 object-cover rounded-lg"
+          />
+        ) : (
+          <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs text-center px-1">
+            No Image Available
+          </div>
+        )}
       </Link>
 
       {/* Product Info */}
@@ -36,9 +43,9 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, itemKey }) => {
             {product.selectedVariant}
           </span>
         )}
-        <p className={`font-body font-medium mt-2 ${isNonVeg ? 'text-nonveg' : 'text-forest'}`}>
-          ₹{product.price}
-        </p>
+        <div className="mt-2">
+          <Price amount={product.price} size="md" />
+        </div>
       </div>
 
       {/* Quantity Controls */}
@@ -75,9 +82,9 @@ const CartItem = ({ item, onUpdateQuantity, onRemove, itemKey }) => {
       {/* Subtotal */}
       <div className="text-right min-w-[100px]">
         <p className="font-body text-sm text-gray-500">Subtotal</p>
-        <p className="font-heading text-lg font-bold text-text-primary">
-          ₹{subtotal}
-        </p>
+        <div className="flex justify-end">
+          <Price amount={subtotal} size="md" />
+        </div>
       </div>
 
       {/* Remove Button */}
@@ -190,18 +197,18 @@ const Cart = () => {
                 </h2>
 
                 <div className="space-y-3 mb-6">
-                  <div className="flex justify-between font-body text-gray-600">
+                  <div className="flex justify-between items-center font-body text-gray-600">
                     <span>Subtotal</span>
-                    <span>₹{totalPrice}</span>
+                    <Price amount={totalPrice} size="md" />
                   </div>
-                  <div className="flex justify-between font-body text-gray-600">
+                  <div className="flex justify-between items-center font-body text-gray-600">
                     <span>Shipping</span>
-                    <span className="text-forest">Free</span>
+                    <span className="text-forest font-medium">Free</span>
                   </div>
                   <div className="border-t border-gray-100 pt-3">
-                    <div className="flex justify-between font-heading text-lg font-bold text-text-primary">
-                      <span>Total</span>
-                      <span>₹{totalPrice}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="font-heading text-lg font-semibold text-text-primary">Total</span>
+                      <Price amount={totalPrice} size="lg" />
                     </div>
                   </div>
                 </div>

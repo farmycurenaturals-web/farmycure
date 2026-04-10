@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { Navigate, createBrowserRouter, RouterProvider, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
@@ -18,11 +18,20 @@ import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Profile from './pages/Profile'
+import OrderTracking from './pages/OrderTracking'
 import { isUserLoggedIn } from './utils/auth'
 
 const ProtectedRoute = ({ children }) => {
+  const location = useLocation()
   if (!isUserLoggedIn()) {
-    return <Navigate to="/login" replace state={{ message: 'Please login to continue' }} />
+    const from = `${location.pathname}${location.search}${location.hash}`
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from, message: 'Please login to continue' }}
+      />
+    )
   }
   return children
 }
@@ -55,6 +64,14 @@ const router = createBrowserRouter([
         )
       },
       { path: 'order-success', element: <OrderSuccess /> },
+      {
+        path: 'order/:id',
+        element: (
+          <ProtectedRoute>
+            <OrderTracking />
+          </ProtectedRoute>
+        )
+      },
       { path: 'login', element: <Login /> },
       { path: 'forgot-password', element: <ForgotPassword /> },
       { path: 'reset-password', element: <ResetPassword /> },
@@ -68,7 +85,9 @@ const router = createBrowserRouter([
       },
     ],
   },
-])
+], {
+  basename: import.meta.env.BASE_URL.replace(/\/$/, '') || '/',
+})
 
 function App() {
   const [showSplash, setShowSplash] = useState(true)

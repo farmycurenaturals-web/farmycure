@@ -1,5 +1,6 @@
 import { Card } from '../ui/Card'
 import { Button } from '../ui/Button'
+import Price from '../Price'
 import { useCart } from '../../context/CartContext'
 import { useNavigate } from 'react-router-dom'
 import { isUserLoggedIn } from '../../utils/auth'
@@ -24,14 +25,17 @@ const ProductCard = ({ product }) => {
     <Card hoverable className="h-full flex flex-col">
       {/* Image */}
       <div className="relative h-48 md:h-56 overflow-hidden bg-gray-100">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop'
-          }}
-        />
+        {product.image ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="h-40 md:h-56 flex items-center justify-center text-gray-400 text-sm px-2 text-center">
+            No Image Available
+          </div>
+        )}
         {product.featured && (
           <span className="absolute top-3 left-3 bg-burnt-orange text-white text-xs font-semibold px-3 py-1 rounded-full">
             Featured
@@ -50,9 +54,7 @@ const ProductCard = ({ product }) => {
         
         {/* Price and Button */}
         <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-          <span className="font-heading text-xl font-bold text-forest">
-            ₹{product.price}
-          </span>
+          <Price amount={product.price} size="lg" />
           <Button 
             variant="primary" 
             size="sm"

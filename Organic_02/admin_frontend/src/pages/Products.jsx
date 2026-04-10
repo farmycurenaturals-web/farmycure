@@ -21,6 +21,7 @@ const blankForm = () => ({
   name: '',
   category: '',
   description: '',
+  isFeatured: false,
   variants: [blankVariant()],
 });
 
@@ -107,6 +108,7 @@ const Products = () => {
         name: product.name || product.title || '',
         category: product.category || '',
         description: product.description || '',
+        isFeatured: Boolean(product.isFeatured),
         variants: productVariants.length ? productVariants : [blankVariant()],
       });
     } else {
@@ -236,6 +238,7 @@ const Products = () => {
       payload.append('title', formData.name.trim());
       payload.append('category', formData.category);
       payload.append('description', formData.description?.trim() || '');
+      payload.append('isFeatured', formData.isFeatured ? 'true' : 'false');
       payload.append(
         'variants',
         JSON.stringify(
@@ -324,14 +327,6 @@ const Products = () => {
     }
   };
 
-  const resolveMainImage = (row) => {
-    if (row.image) return row.image;
-    if (Array.isArray(row.variants)) {
-      return row.variants.find((v) => v?.image)?.image || '';
-    }
-    return '';
-  };
-
   const resolveMinPrice = (row) => {
     if (Array.isArray(row.variants) && row.variants.length) {
       const prices = row.variants
@@ -358,10 +353,18 @@ const Products = () => {
       dataIndex: 'name',
       render: (row) => (
         <div className="flex items-center gap-3">
-          {resolveMainImage(row) ? (
-            <img src={resolveMainImage(row)} alt={row.name} className="w-10 h-10 rounded-md object-cover bg-gray-50 border border-gray-100" />
+          {row.image ? (
+            <div className="w-10 h-10 rounded overflow-hidden border border-gray-100 shrink-0">
+              <img
+                src={row.image}
+                alt={row.name}
+                className="w-full h-full object-cover rounded"
+              />
+            </div>
           ) : (
-            <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-400 text-xs text-center border border-gray-100">No Img</div>
+            <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded text-gray-400 text-sm border border-gray-100 shrink-0">
+              No Image
+            </div>
           )}
           <div>
             <span className="font-medium text-gray-900 block">{row.name || row.title}</span>
@@ -568,6 +571,16 @@ const Products = () => {
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-colors resize-none"
                   ></textarea>
                 </div>
+
+                <label className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.isFeatured}
+                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-700">Featured Product</span>
+                </label>
 
                 <div className="pt-2 border-t border-gray-100">
                   <div className="flex justify-between items-center mb-3">

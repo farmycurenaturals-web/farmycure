@@ -34,7 +34,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <Link to="/" onClick={onClose}>
                   <span className="font-heading text-xl font-bold text-forest">
-                    GreenHarvest
+                    FarmyCure Naturals
                   </span>
                 </Link>
                 <button
@@ -61,25 +61,50 @@ const MobileMenu = ({ isOpen, onClose }) => {
               {/* Navigation Links */}
               <nav className="flex-1 p-6">
                 <NavLinks onClick={onClose} />
-                <div className="mt-4">
+                <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
                   {isAuthenticated ? (
-                    <div className="flex items-center gap-3">
-                      <Link to="/profile" onClick={onClose} className="inline-flex items-center">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
                         <img
                           src={avatarSrc}
-                          alt={`${user?.name || 'User'} avatar`}
-                          className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover border border-gray-200 hover:scale-105 transition"
                         />
-                      </Link>
-                      <button
-                        onClick={() => {
-                          logout()
-                          onClose()
-                        }}
-                        className="text-sm font-medium text-forest"
-                      >
-                        Logout
-                      </button>
+                        <span className="text-sm font-medium text-text-primary truncate">{user?.name}</span>
+                      </div>
+                      <div className="flex flex-col gap-1 rounded-lg border border-gray-100 overflow-hidden bg-gray-50/50">
+                        <Link
+                          to="/profile"
+                          onClick={onClose}
+                          className="hover:bg-gray-100 px-4 py-2 cursor-pointer text-sm text-forest"
+                        >
+                          My Profile
+                        </Link>
+                        <Link
+                          to="/profile?tab=orders"
+                          onClick={onClose}
+                          className="hover:bg-gray-100 px-4 py-2 cursor-pointer text-sm text-forest"
+                        >
+                          My Orders
+                        </Link>
+                        <Link
+                          to="/profile?tab=addresses"
+                          onClick={onClose}
+                          className="hover:bg-gray-100 px-4 py-2 cursor-pointer text-sm text-forest"
+                        >
+                          Saved Addresses
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            logout()
+                            onClose()
+                          }}
+                          className="text-left hover:bg-gray-100 px-4 py-2 cursor-pointer text-sm text-forest"
+                        >
+                          Logout
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <Link to="/login" onClick={onClose} className="text-sm font-medium text-forest">
